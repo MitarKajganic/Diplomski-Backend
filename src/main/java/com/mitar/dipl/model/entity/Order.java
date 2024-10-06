@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -13,8 +14,10 @@ import java.util.UUID;
 public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order'
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private LocalDateTime orderTime;
     private String status; // e.g., PENDING, COMPLETED, CANCELLED
@@ -29,8 +32,4 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 
-    @PrePersist
-    public void generateId() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
 }

@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -11,8 +12,10 @@ import java.util.UUID;
 public class OrderItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private int quantity;
     private double price; // Price at the time of order
@@ -25,8 +28,4 @@ public class OrderItem {
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;
 
-    @PrePersist
-    public void generateId() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
 }

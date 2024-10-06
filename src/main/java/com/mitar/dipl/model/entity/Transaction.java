@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -12,8 +13,10 @@ import java.util.UUID;
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private LocalDateTime transactionTime;
     private double amount;
@@ -23,8 +26,4 @@ public class Transaction {
     @JoinColumn(name = "bill_id", nullable = false)
     private Bill bill;
 
-    @PrePersist
-    public void generateId() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
 }

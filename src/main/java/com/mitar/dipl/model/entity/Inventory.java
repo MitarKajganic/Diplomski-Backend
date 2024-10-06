@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -11,8 +12,10 @@ import java.util.UUID;
 public class Inventory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private String ingredientName;
     private int quantity;
@@ -20,8 +23,4 @@ public class Inventory {
 
     private boolean lowStock; // Flag for low stock alerts
 
-    @PrePersist
-    public void generateId() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
 }

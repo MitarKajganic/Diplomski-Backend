@@ -1,11 +1,11 @@
 package com.mitar.dipl.repository;
 
-import com.mitar.dipl.model.entity.Bill;
+import com.mitar.dipl.model.entity.Menu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;
 
 @Repository
-public interface BillRepository extends JpaRepository<Bill, UUID> {
+public interface MenuRepository extends JpaRepository<Menu, UUID> {
 }

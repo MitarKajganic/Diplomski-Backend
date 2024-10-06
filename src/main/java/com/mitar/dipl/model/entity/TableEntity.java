@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 
 import java.util.Set;
@@ -13,8 +14,10 @@ import java.util.UUID;
 public class TableEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    @GeneratedValue
+    @UuidGenerator
+    @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
 
     private int tableNumber;
     private int capacity;
@@ -23,8 +26,4 @@ public class TableEntity {
     @OneToMany(mappedBy = "table")
     private Set<Reservation> reservations;
 
-    @PrePersist
-    public void generateId() {
-        if (id == null) id = UUID.randomUUID().toString();
-    }
 }
