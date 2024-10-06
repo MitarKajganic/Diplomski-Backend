@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -13,7 +14,7 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private LocalDateTime orderTime;
     private String status; // e.g., PENDING, COMPLETED, CANCELLED
@@ -28,4 +29,8 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Bill bill;
 
+    @PrePersist
+    public void generateId() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }

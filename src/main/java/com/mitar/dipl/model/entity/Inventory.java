@@ -3,6 +3,8 @@ package com.mitar.dipl.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "inventory")
 @Data
@@ -10,7 +12,7 @@ public class Inventory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String ingredientName;
     private int quantity;
@@ -18,4 +20,8 @@ public class Inventory {
 
     private boolean lowStock; // Flag for low stock alerts
 
+    @PrePersist
+    public void generateId() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tables")
@@ -13,7 +14,7 @@ public class TableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private int tableNumber;
     private int capacity;
@@ -22,4 +23,8 @@ public class TableEntity {
     @OneToMany(mappedBy = "table")
     private Set<Reservation> reservations;
 
+    @PrePersist
+    public void generateId() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }

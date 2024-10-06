@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -12,7 +13,7 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(nullable = false, unique = true)
     private String username;
@@ -29,4 +30,8 @@ public class User {
     @OneToMany(mappedBy = "user")
     private Set<Reservation> reservations;
 
+    @PrePersist
+    public void generateId() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }

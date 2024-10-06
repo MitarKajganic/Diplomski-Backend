@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
@@ -12,7 +13,7 @@ public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private LocalDateTime transactionTime;
     private double amount;
@@ -22,4 +23,8 @@ public class Transaction {
     @JoinColumn(name = "bill_id", nullable = false)
     private Bill bill;
 
+    @PrePersist
+    public void generateId() {
+        if (id == null) id = UUID.randomUUID().toString();
+    }
 }
