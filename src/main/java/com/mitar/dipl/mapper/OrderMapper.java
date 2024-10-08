@@ -5,24 +5,28 @@ import com.mitar.dipl.model.dto.order.OrderDto;
 import com.mitar.dipl.model.entity.Order;
 import com.mitar.dipl.model.entity.User;
 import com.mitar.dipl.repository.UserRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
+@AllArgsConstructor
 public class OrderMapper {
 
     private UserRepository userRepository;
+
+    private OrderItemMapper orderItemMapper;
 
     public OrderDto toDto(Order order) {
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId().toString());
         orderDto.setCreatedAt(order.getCreatedAt().toString());
         orderDto.setStatus(order.getStatus());
-        order.setUser(order.getUser());
-        order.setOrderItems(order.getOrderItems());
-        order.setBill(order.getBill());
+        orderDto.setOrderItems(order.getOrderItems().stream().map(orderItemMapper::toDto).collect(Collectors.toSet()));
+        orderDto.setUserId(order.getUser().getId().toString());
         return orderDto;
     }
 

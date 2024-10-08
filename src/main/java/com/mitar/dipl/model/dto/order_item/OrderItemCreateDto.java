@@ -3,9 +3,8 @@ package com.mitar.dipl.model.dto.order_item;
 import lombok.Data;
 
 @Data
-public class OrderItemDto {
+public class OrderItemCreateDto {
 
-    private String id;
     private String price;
     private String quantity;
     private String orderId;

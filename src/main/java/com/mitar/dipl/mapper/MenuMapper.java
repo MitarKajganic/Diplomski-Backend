@@ -3,15 +3,20 @@ package com.mitar.dipl.mapper;
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
 import com.mitar.dipl.model.dto.menu.MenuDto;
 import com.mitar.dipl.model.entity.Menu;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class MenuMapper {
+
+    private MenuItemMapper menuItemMapper;
 
     public MenuDto toDto(Menu menu) {
         MenuDto menuDto = new MenuDto();
+        menuDto.setId(menu.getId().toString());
         menuDto.setName(menu.getName());
-        menuDto.setItems(menu.getItems());
+        menu.getItems().stream().map(menuItemMapper::toDto).forEach(menuDto.getItems()::add);
         return menuDto;
     }
 
