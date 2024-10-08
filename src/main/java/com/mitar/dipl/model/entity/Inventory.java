@@ -17,7 +17,7 @@ public class Inventory {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    private String ingredientName;
+    private String itemName;
     private int quantity;
     private String unit; // e.g., kg, liters
 
