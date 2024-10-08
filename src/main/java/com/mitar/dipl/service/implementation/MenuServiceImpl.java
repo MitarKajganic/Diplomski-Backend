@@ -60,10 +60,15 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ResponseEntity<?> updateMenu(String menuId, MenuCreateDto menuCreateDto) {
-        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
-        if (menu.isEmpty())
+        Optional<Menu> optionalMenu = menuRepository.findById(UUID.fromString(menuId));
+        if (optionalMenu.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(menuRepository.save(menuMapper.toEntity(menuCreateDto)));
+        Menu menu = optionalMenu.get();
+
+        menu.setName(menuCreateDto.getName());
+        menu.setItems(menuCreateDto.getItems());
+
+        return ResponseEntity.status(HttpStatus.OK).body(menuMapper.toDto(menuRepository.save(menu)));
     }
 
 }

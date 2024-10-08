@@ -1,7 +1,9 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
@@ -19,7 +21,10 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    private LocalDateTime orderTime;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
+
     private String status; // e.g., PENDING, COMPLETED, CANCELLED
 
     @ManyToOne
@@ -30,6 +35,7 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     private Set<OrderItem> orderItems;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @JsonBackReference
     private Bill bill;
 
 }

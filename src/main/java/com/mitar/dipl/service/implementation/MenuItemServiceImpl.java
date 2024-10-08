@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -95,12 +96,19 @@ public class MenuItemServiceImpl implements MenuItemService {
 
     @Override
     public ResponseEntity<?> updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto) {
-        Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(id));
-        if (menuItem.isEmpty())
+        Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(UUID.fromString(id));
+        if (optionalMenuItem.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(
-                menuItemMapper.toDto(menuItemRepository.save(menuItemMapper.toEntity(menuItemCreateDto)))
-        );
+        MenuItem menuItem = optionalMenuItem.get();
+
+        menuItem.setName(menuItemCreateDto.getName());
+        menuItem.setDescription(menuItemCreateDto.getDescription());
+        menuItem.setPrice(new BigDecimal(menuItemCreateDto.getPrice()));
+        menuItem.setCategory(menuItemCreateDto.getCategory());
+        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuItemCreateDto.getMenuId()));
+        menu.ifPresent(menuItem::setMenu);
+
+        return ResponseEntity.status(HttpStatus.OK).body(menuItemMapper.toDto(menuItemRepository.save(menuItem)));
     }
 
 }

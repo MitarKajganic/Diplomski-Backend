@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.entity;
 
+import com.mitar.dipl.model.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;

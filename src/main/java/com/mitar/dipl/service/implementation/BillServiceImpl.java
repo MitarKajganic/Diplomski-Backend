@@ -64,9 +64,11 @@ public class BillServiceImpl implements BillService {
         if (optionalBill.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         Bill bill = optionalBill.get();
+
         bill.setTotalAmount(billCreateDto.getTotalAmount());
         bill.setTax(billCreateDto.getTax());
         bill.setDiscount(billCreateDto.getDiscount());
+
         Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
         if (order.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

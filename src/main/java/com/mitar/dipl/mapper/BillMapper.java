@@ -3,11 +3,13 @@ package com.mitar.dipl.mapper;
 import com.mitar.dipl.model.dto.bill.BillCreateDto;
 import com.mitar.dipl.model.dto.bill.BillDto;
 import com.mitar.dipl.model.entity.Bill;
+import com.mitar.dipl.model.entity.Order;
 import com.mitar.dipl.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -32,7 +34,12 @@ public class BillMapper {
         bill.setTotalAmount(billCreateDto.getTotalAmount());
         bill.setTax(billCreateDto.getTax());
         bill.setDiscount(billCreateDto.getDiscount());
-        bill.setOrder(orderRepository.findById(UUID.fromString(billCreateDto.getOrderId())).get());
+        Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
+        if (order.isPresent()) {
+            bill.setOrder(order.get());
+            order.ifPresent(o -> o.setBill(bill));
+            orderRepository.save(order.get());
+        }
         return bill;
     }
 }

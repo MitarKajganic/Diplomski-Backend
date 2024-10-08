@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -31,6 +32,7 @@ public class Bill {
 
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false)
+    @JsonManagedReference
     private Order order;
 
     @PrePersist

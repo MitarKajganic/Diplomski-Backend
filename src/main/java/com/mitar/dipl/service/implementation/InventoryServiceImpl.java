@@ -55,10 +55,14 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ResponseEntity<?> updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto) {
-        Optional<Inventory> inventory = inventoryRepository.findById(UUID.fromString(inventoryId));
-        if (inventory.isEmpty())
+        Optional<Inventory> optionalInventory = inventoryRepository.findById(UUID.fromString(inventoryId));
+        if (optionalInventory.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        inventoryRepository.save(inventoryMapper.toEntity(inventoryCreateDto));
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        Inventory inventory = optionalInventory.get();
+
+        inventory.setItemName(inventoryCreateDto.getItemName());
+        inventory.setUnit(inventoryCreateDto.getUnit());
+
+        return ResponseEntity.status(HttpStatus.OK).body(inventoryMapper.toDto(inventoryRepository.save(inventory)));
     }
 }
