@@ -18,15 +18,27 @@ public class Reservation {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private LocalDateTime reservationTime;
+
+    @Column(nullable = false)
     private int numberOfGuests;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // The customer who made the reservation
+    @JoinColumn(name = "user_id")
+    private User user; // The customer who made the reservation (optional)
 
     @ManyToOne
     @JoinColumn(name = "table_id", nullable = false)
     private TableEntity table;
+
+    @Column(name = "guest_name")
+    private String guestName;
+
+    @Column(name = "guest_email")
+    private String guestEmail;
+
+    @Column(name = "guest_phone")
+    private String guestPhone;
 
 }

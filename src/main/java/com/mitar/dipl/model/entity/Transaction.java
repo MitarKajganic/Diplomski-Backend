@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public class Transaction {
     private UUID id;
 
     private LocalDateTime transactionTime;
-    private double amount;
+    private BigDecimal amount;
     private String type; // e.g., PAYMENT, REFUND
 
     @ManyToOne

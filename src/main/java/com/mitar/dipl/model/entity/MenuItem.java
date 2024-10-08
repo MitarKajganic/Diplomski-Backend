@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -19,10 +20,9 @@ public class MenuItem {
 
     private String name;
     private String description;
-    private double price;
+    private BigDecimal price;
     private String category; // e.g., Appetizer, Main Course, Dessert
 
-    // Relationships
     @ManyToOne
     @JoinColumn(name = "menu_id", nullable = false)
     private Menu menu;

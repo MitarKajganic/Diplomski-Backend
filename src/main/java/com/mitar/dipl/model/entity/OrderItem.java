@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +19,7 @@ public class OrderItem {
     private UUID id;
 
     private int quantity;
-    private double price; // Price at the time of order
+    private BigDecimal price; // Price at the time of order
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
