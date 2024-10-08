@@ -11,7 +11,7 @@ import java.util.UUID;
 public class BillCreateDto {
 
     @NotNull(message = "Order ID cannot be null")
-    private UUID orderId;
+    private String orderId;
 
     @NotNull(message = "Total amount cannot be null")
     @DecimalMin(value = "0.0", inclusive = false, message = "Total amount must be greater than zero")

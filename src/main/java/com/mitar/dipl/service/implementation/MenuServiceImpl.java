@@ -24,6 +24,11 @@ public class MenuServiceImpl implements MenuService {
     private MenuMapper menuMapper;
 
     @Override
+    public ResponseEntity<?> getAllMenus() {
+        return ResponseEntity.status(HttpStatus.OK).body(menuRepository.findAll());
+    }
+
+    @Override
     public ResponseEntity<?> getMenuById(String menuId) {
         Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
         if (menu.isEmpty())
@@ -40,17 +45,17 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    public ResponseEntity<?> createMenu(MenuCreateDto menuCreateDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(menuRepository.save(menuMapper.toEntity(menuCreateDto)));
+    }
+
+    @Override
     public ResponseEntity<?> deleteMenu(String menuId) {
         Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
         if (menu.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         menuRepository.delete(menu.get());
         return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
-    @Override
-    public ResponseEntity<?> createMenu(MenuCreateDto menuCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(menuRepository.save(menuMapper.toEntity(menuCreateDto)));
     }
 
     @Override

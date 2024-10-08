@@ -9,9 +9,9 @@ public interface InventoryService {
 
     ResponseEntity<?> getInventoryByIngredientName(String ingredientName);
 
-    ResponseEntity<?> deleteInventory(String inventoryId);
-
     ResponseEntity<?> createInventory(InventoryCreateDto inventoryCreateDto);
+
+    ResponseEntity<?> deleteInventory(String inventoryId);
 
     ResponseEntity<?> updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto);
 

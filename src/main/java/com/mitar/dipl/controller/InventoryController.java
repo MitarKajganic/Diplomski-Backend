@@ -24,14 +24,14 @@ public class InventoryController {
         return inventoryService.getInventoryByIngredientName(ingredientName);
     }
 
-    @DeleteMapping("/delete/{inventoryId}")
-    public ResponseEntity<?> deleteInventory(@PathVariable String inventoryId) {
-        return inventoryService.deleteInventory(inventoryId);
-    }
-
     @PostMapping
     public ResponseEntity<?> createInventory(@RequestBody @Validated InventoryCreateDto inventoryCreateDto) {
         return inventoryService.createInventory(inventoryCreateDto);
+    }
+
+    @DeleteMapping("/delete/{inventoryId}")
+    public ResponseEntity<?> deleteInventory(@PathVariable String inventoryId) {
+        return inventoryService.deleteInventory(inventoryId);
     }
 
     @PutMapping("/update/{inventoryId}")

@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Data
 @Component
 public class BillMapper {
@@ -30,7 +32,7 @@ public class BillMapper {
         bill.setTotalAmount(billCreateDto.getTotalAmount());
         bill.setTax(billCreateDto.getTax());
         bill.setDiscount(billCreateDto.getDiscount());
-        bill.setOrder(orderRepository.findById(billCreateDto.getOrderId()).get());
+        bill.setOrder(orderRepository.findById(UUID.fromString(billCreateDto.getOrderId())).get());
         return bill;
     }
 }

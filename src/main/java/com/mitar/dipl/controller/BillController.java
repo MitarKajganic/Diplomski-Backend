@@ -24,14 +24,14 @@ public class BillController {
         return billService.getBillByOrderId(orderId);
     }
 
-    @DeleteMapping("/delete/{billId}")
-    public ResponseEntity<?> deleteBill(@PathVariable String billId) {
-        return billService.deleteBill(billId);
-    }
-
     @PostMapping
     public ResponseEntity<?> createBill(@RequestBody @Validated BillCreateDto billCreateDto) {
         return billService.createBill(billCreateDto);
+    }
+
+    @DeleteMapping("/delete/{billId}")
+    public ResponseEntity<?> deleteBill(@PathVariable String billId) {
+        return billService.deleteBill(billId);
     }
 
     @PutMapping("/update/{billId}")

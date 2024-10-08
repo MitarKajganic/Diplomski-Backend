@@ -3,6 +3,7 @@ package com.mitar.dipl.service.implementation;
 import com.mitar.dipl.mapper.BillMapper;
 import com.mitar.dipl.model.dto.bill.BillCreateDto;
 import com.mitar.dipl.model.entity.Bill;
+import com.mitar.dipl.model.entity.Order;
 import com.mitar.dipl.repository.BillRepository;
 import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.service.BillService;
@@ -28,11 +29,6 @@ public class BillServiceImpl implements BillService {
 
 
     @Override
-    public ResponseEntity<?> createBill(BillCreateDto billCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(billMapper.toDto(billRepository.save(billMapper.toEntity(billCreateDto))));
-    }
-
-    @Override
     public ResponseEntity<?> getBillById(String id) {
         Optional<Bill> bill = billRepository.findById(UUID.fromString(id));
         if (bill.isEmpty())
@@ -46,6 +42,11 @@ public class BillServiceImpl implements BillService {
         if (bill.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(bill.get()));
+    }
+
+    @Override
+    public ResponseEntity<?> createBill(BillCreateDto billCreateDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(billMapper.toDto(billRepository.save(billMapper.toEntity(billCreateDto))));
     }
 
     @Override
@@ -66,7 +67,10 @@ public class BillServiceImpl implements BillService {
         bill.setTotalAmount(billCreateDto.getTotalAmount());
         bill.setTax(billCreateDto.getTax());
         bill.setDiscount(billCreateDto.getDiscount());
-        bill.setOrder(orderRepository.findById(billCreateDto.getOrderId()).get());
+        Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
+        if (order.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        bill.setOrder(order.get());
         return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(billRepository.save(bill)));
     }
 }
