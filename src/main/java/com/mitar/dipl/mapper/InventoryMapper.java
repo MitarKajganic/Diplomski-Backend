@@ -3,9 +3,11 @@ package com.mitar.dipl.mapper;
 import com.mitar.dipl.model.dto.inventory.InventoryCreateDto;
 import com.mitar.dipl.model.dto.inventory.InventoryDto;
 import com.mitar.dipl.model.entity.Inventory;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@AllArgsConstructor
 public class InventoryMapper {
 
     public InventoryDto toDto(Inventory inventory) {

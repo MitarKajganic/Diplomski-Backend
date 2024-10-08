@@ -6,14 +6,13 @@ import com.mitar.dipl.model.entity.Bill;
 import com.mitar.dipl.model.entity.Order;
 import com.mitar.dipl.repository.OrderRepository;
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Data
 @Component
+@AllArgsConstructor
 public class BillMapper {
 
     private OrderRepository orderRepository;
