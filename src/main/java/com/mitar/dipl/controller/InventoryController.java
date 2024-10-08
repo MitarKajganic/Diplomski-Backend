@@ -19,9 +19,9 @@ public class InventoryController {
         return inventoryService.getInventoryById(inventoryId);
     }
 
-    @GetMapping("/item/{ingredientName}")
-    public ResponseEntity<?> getInventoryByIngredientName(@PathVariable String ingredientName) {
-        return inventoryService.getInventoryByIngredientName(ingredientName);
+    @GetMapping("/item/{itemName}")
+    public ResponseEntity<?> getInventoryByItemName(@PathVariable String itemName) {
+        return inventoryService.getInventoryByIngredientName(itemName);
     }
 
     @PostMapping

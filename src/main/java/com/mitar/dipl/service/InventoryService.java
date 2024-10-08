@@ -7,7 +7,7 @@ public interface InventoryService {
 
     ResponseEntity<?> getInventoryById(String inventoryId);
 
-    ResponseEntity<?> getInventoryByIngredientName(String ingredientName);
+    ResponseEntity<?> getInventoryByIngredientName(String itemName);
 
     ResponseEntity<?> createInventory(InventoryCreateDto inventoryCreateDto);
 

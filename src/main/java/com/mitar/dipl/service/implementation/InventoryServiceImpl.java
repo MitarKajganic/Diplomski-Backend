@@ -32,8 +32,8 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public ResponseEntity<?> getInventoryByIngredientName(String ingredientName) {
-        Optional<Inventory> inventory = inventoryRepository.findByIngredientName(ingredientName);
+    public ResponseEntity<?> getInventoryByIngredientName(String itemName) {
+        Optional<Inventory> inventory = inventoryRepository.findByItemName(itemName);
         if (inventory.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         return ResponseEntity.status(HttpStatus.OK).body(inventoryMapper.toDto(inventory.get()));
