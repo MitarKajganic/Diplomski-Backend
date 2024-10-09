@@ -41,4 +41,7 @@ public class Reservation {
     @Column(name = "guest_phone")
     private String guestPhone;
 
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
 }
