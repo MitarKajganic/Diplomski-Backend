@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 public class ReservationCreateDto {
 
     @NotNull(message = "Table ID is required.")
+    @NotEmpty(message = "Table ID cannot be empty.")
     private String tableId;
 
     @NotNull(message = "Reservation time is required.")
@@ -19,8 +20,12 @@ public class ReservationCreateDto {
     @Min(value = 1, message = "There must be at least one guest.")
     private Integer numberOfGuests;
 
+    @NotNull(message = "User ID is required.")
+    @NotEmpty(message = "User ID cannot be empty.")
     private String userId;
 
+    @NotNull(message = "Guest name is required.")
+    @NotEmpty(message = "Guest name cannot be empty.")
     private String guestName;
 
     @Email(message = "Invalid guest email format.")
