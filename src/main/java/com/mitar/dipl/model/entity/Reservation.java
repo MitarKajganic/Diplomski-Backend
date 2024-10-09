@@ -2,7 +2,9 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.Where;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -10,6 +12,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "reservations")
 @Data
+@SQLDelete(sql = "UPDATE reservations SET deleted = true WHERE id = ?")
+@Where(clause = "deleted = false")
 public class Reservation {
 
     @Id

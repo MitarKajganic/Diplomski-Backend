@@ -7,6 +7,8 @@ public interface ReservationService {
 
     ResponseEntity<?> getAllReservations();
 
+    ResponseEntity<?> getAllIncludingDeleted();
+
     ResponseEntity<?> getReservationById(String reservationId);
 
     ResponseEntity<?> getReservationsByUserId(String userId);

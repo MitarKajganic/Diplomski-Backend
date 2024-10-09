@@ -41,6 +41,11 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    public ResponseEntity<?> getAllIncludingDeleted() {
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllIncludingDeleted());
+    }
+
+    @Override
     public ResponseEntity<?> getReservationById(String reservationId) {
         UUID uuid;
         try {

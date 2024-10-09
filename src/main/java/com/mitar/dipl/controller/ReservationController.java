@@ -19,6 +19,11 @@ public class ReservationController {
         return reservationService.getAllReservations();
     }
 
+    @GetMapping("/all-including-deleted")
+    public ResponseEntity<?> getAllIncludingDeleted() {
+        return reservationService.getAllIncludingDeleted();
+    }
+
     @GetMapping("/{reservationId}")
     public ResponseEntity<?> getReservationById(@PathVariable String reservationId) {
         return reservationService.getReservationById(reservationId);

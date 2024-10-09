@@ -2,6 +2,7 @@ package com.mitar.dipl.repository;
 
 import com.mitar.dipl.model.entity.Reservation;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -20,6 +21,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
     List<Reservation> findAllByGuestEmail(String guestEmail);
 
     List<Reservation> findAllByGuestPhone(String guestPhone);
+
+    @Query("SELECT r FROM Reservation r")
+    List<Reservation> findAllIncludingDeleted();
 
     boolean existsByTable_IdAndReservationTimeBetween(UUID tableId, LocalDateTime start, LocalDateTime end);
 
