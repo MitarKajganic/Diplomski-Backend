@@ -18,6 +18,7 @@ public class Staff {
     private UUID id;
 
     private String name;
+    private String surname;
     private String position;
     private String contactInfo;
 

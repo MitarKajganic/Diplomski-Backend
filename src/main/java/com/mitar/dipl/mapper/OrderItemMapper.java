@@ -10,7 +10,6 @@ import com.mitar.dipl.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Component
@@ -24,8 +23,8 @@ public class OrderItemMapper {
     public OrderItemDto toDto(OrderItem orderItem) {
         OrderItemDto orderItemDto = new OrderItemDto();
         orderItemDto.setId(orderItem.getId().toString());
-        orderItemDto.setPrice(orderItem.getPrice().toString());
-        orderItemDto.setQuantity(String.valueOf(orderItem.getQuantity()));
+        orderItemDto.setPrice(orderItem.getPrice());
+        orderItemDto.setQuantity(orderItem.getQuantity());
         orderItemDto.setOrderId(orderItem.getOrder().getId().toString());
         orderItemDto.setMenuItemId(orderItem.getMenuItem().getId().toString());
         return orderItemDto;
@@ -33,8 +32,8 @@ public class OrderItemMapper {
 
     public OrderItem toEntity(OrderItemCreateDto orderItemCreateDto) {
         OrderItem orderItem = new OrderItem();
-        orderItem.setPrice(new BigDecimal(orderItemCreateDto.getPrice()));
-        orderItem.setQuantity(Integer.parseInt(orderItemCreateDto.getQuantity()));
+        orderItem.setPrice(orderItemCreateDto.getPrice());
+        orderItem.setQuantity(orderItemCreateDto.getQuantity());
         Order order = orderRepository.findById(UUID.fromString(orderItemCreateDto.getOrderId())).orElseThrow();
         orderItem.setOrder(order);
         MenuItem menuItem = menuItemRepository.findById(UUID.fromString(orderItemCreateDto.getMenuItemId())).orElseThrow();

@@ -14,9 +14,9 @@ public class InventoryMapper {
         InventoryDto inventoryDto = new InventoryDto();
         inventoryDto.setId(inventory.getId().toString());
         inventoryDto.setItemName(inventory.getItemName());
-        inventoryDto.setQuantity(String.valueOf(inventory.getQuantity()));
+        inventoryDto.setQuantity(inventory.getQuantity());
         inventoryDto.setUnit(inventory.getUnit());
-        inventoryDto.setLowStock(String.valueOf(inventory.isLowStock()));
+        inventoryDto.setLowStock(inventory.getLowStock());
         return inventoryDto;
     }
 

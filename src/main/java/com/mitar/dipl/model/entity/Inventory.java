@@ -18,9 +18,9 @@ public class Inventory {
     private UUID id;
 
     private String itemName;
-    private int quantity;
+    private Integer quantity;
     private String unit; // e.g., kg, liters
 
-    private boolean lowStock; // Flag for low stock alerts
+    private Boolean lowStock; // Flag for low stock alerts
 
 }

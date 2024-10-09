@@ -19,10 +19,8 @@ public class ReservationCreateDto {
     @Min(value = 1, message = "There must be at least one guest.")
     private Integer numberOfGuests;
 
-    // User ID if the reservation is made by a registered user
     private String userId;
 
-    // Guest information if the reservation is made by a guest
     private String guestName;
 
     @Email(message = "Invalid guest email format.")

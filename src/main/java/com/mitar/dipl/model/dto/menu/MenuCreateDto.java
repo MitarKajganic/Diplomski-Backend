@@ -1,6 +1,6 @@
 package com.mitar.dipl.model.dto.menu;
 
-import com.mitar.dipl.model.entity.MenuItem;
+import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
 import lombok.Data;
 
 import java.util.Set;
@@ -9,6 +9,6 @@ import java.util.Set;
 public class MenuCreateDto {
 
     private String name;
-    private Set<MenuItem> items;
+    private Set<MenuItemDto> items;
 
 }

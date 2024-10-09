@@ -23,7 +23,7 @@ public class OrderMapper {
     public OrderDto toDto(Order order) {
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId().toString());
-        orderDto.setCreatedAt(order.getCreatedAt().toString());
+        orderDto.setCreatedAt(order.getCreatedAt());
         orderDto.setStatus(order.getStatus());
         orderDto.setOrderItems(order.getOrderItems().stream().map(orderItemMapper::toDto).collect(Collectors.toSet()));
         orderDto.setUserId(order.getUser().getId().toString());

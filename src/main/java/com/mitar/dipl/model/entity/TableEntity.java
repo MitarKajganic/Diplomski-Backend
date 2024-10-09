@@ -19,9 +19,9 @@ public class TableEntity {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    private int tableNumber;
-    private int capacity;
-    private boolean isAvailable;
+    private Integer tableNumber;
+    private Integer capacity;
+    private Boolean isAvailable;
 
     @OneToMany(mappedBy = "table")
     private Set<Reservation> reservations;

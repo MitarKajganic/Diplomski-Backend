@@ -21,10 +21,11 @@ public class BillMapper {
         BillDto billDto = new BillDto();
         billDto.setId(bill.getId().toString());
         billDto.setOrderId(bill.getOrder().getId().toString());
-        billDto.setTotalAmount(bill.getTotalAmount().toString());
-        billDto.setTax(bill.getTax().toString());
-        billDto.setDiscount(bill.getDiscount().toString());
-        billDto.setCreatedAt(bill.getCreatedAt().toString());
+        billDto.setTotalAmount(bill.getTotalAmount());
+        billDto.setTax(bill.getTax());
+        billDto.setDiscount(bill.getDiscount());
+        billDto.setFinalAmount(bill.getFinalAmount());
+        billDto.setCreatedAt(bill.getCreatedAt());
         return billDto;
     }
 
@@ -36,7 +37,7 @@ public class BillMapper {
         Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
         if (order.isPresent()) {
             bill.setOrder(order.get());
-            order.ifPresent(o -> o.setBill(bill));
+            order.get().setBill(bill);
             orderRepository.save(order.get());
         }
         return bill;

@@ -7,9 +7,9 @@ public class InventoryDto {
 
     private String id;
     private String itemName;
-    private String quantity;
+    private Integer quantity;
     private String unit;
-    private String lowStock;
+    private Boolean lowStock;
 
 }
 
