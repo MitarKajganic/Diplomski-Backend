@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -72,8 +71,8 @@ public class OrderItemServiceImpl implements OrderItemService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         OrderItem orderItem = optionalOrderItem.get();
 
-        orderItem.setPrice(new BigDecimal(orderItemCreateDto.getPrice()));
-        orderItem.setQuantity(Integer.parseInt(orderItemCreateDto.getQuantity()));
+        orderItem.setPrice(orderItemCreateDto.getPrice());
+        orderItem.setQuantity(orderItemCreateDto.getQuantity());
         Optional<Order> order = orderRepository.findById(UUID.fromString(orderItemCreateDto.getOrderId()));
         if (order.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

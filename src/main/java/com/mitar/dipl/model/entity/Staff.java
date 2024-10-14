@@ -22,8 +22,8 @@ public class Staff {
     private String position;
     private String contactInfo;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // Staff user account
+    private User user;
 
 }

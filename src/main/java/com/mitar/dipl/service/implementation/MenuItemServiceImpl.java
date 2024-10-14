@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,7 +102,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         menuItem.setName(menuItemCreateDto.getName());
         menuItem.setDescription(menuItemCreateDto.getDescription());
-        menuItem.setPrice(new BigDecimal(menuItemCreateDto.getPrice()));
+        menuItem.setPrice(menuItemCreateDto.getPrice());
         menuItem.setCategory(menuItemCreateDto.getCategory());
         Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuItemCreateDto.getMenuId()));
         menu.ifPresent(menuItem::setMenu);

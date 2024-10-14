@@ -2,15 +2,14 @@ package com.mitar.dipl.mapper;
 
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
 import com.mitar.dipl.model.dto.menu.MenuDto;
-import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
 import com.mitar.dipl.model.entity.Menu;
+import com.mitar.dipl.model.entity.MenuItem;
 import com.mitar.dipl.repository.MenuItemRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -31,10 +30,9 @@ public class MenuMapper {
     public Menu toEntity(MenuCreateDto menuCreateDto) {
         Menu menu = new Menu();
         menu.setName(menuCreateDto.getName());
-        Set<String> menuItemIds = menuCreateDto.getItems().stream().map(MenuItemDto::getId).collect(Collectors.toSet());
-        for (String menuItemId : menuItemIds) {
-            menuItemRepository.findById(UUID.fromString(menuItemId));
-            menu.getItems().add(menuItemRepository.findById(UUID.fromString(menuItemId)).get());
+        for (String menuItemId : menuCreateDto.getItemIds()) {
+            Optional<MenuItem> menuItemDto = menuItemRepository.findById(UUID.fromString(menuItemId));
+            menuItemDto.ifPresent(menuItem -> menu.getItems().add(menuItem));
         }
         return menu;
     }

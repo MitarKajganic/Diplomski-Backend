@@ -1,8 +1,11 @@
 package com.mitar.dipl.service.implementation;
 
+import com.mitar.dipl.mapper.MenuItemMapper;
 import com.mitar.dipl.mapper.MenuMapper;
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
 import com.mitar.dipl.model.entity.Menu;
+import com.mitar.dipl.model.entity.MenuItem;
+import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.MenuRepository;
 import com.mitar.dipl.service.MenuService;
 import jakarta.transaction.Transactional;
@@ -22,6 +25,10 @@ public class MenuServiceImpl implements MenuService {
     private MenuRepository menuRepository;
 
     private MenuMapper menuMapper;
+
+    private MenuItemMapper menuItemMapper;
+
+    private MenuItemRepository menuItemRepository;
 
     @Override
     public ResponseEntity<?> getAllMenus() {
@@ -66,7 +73,13 @@ public class MenuServiceImpl implements MenuService {
         Menu menu = optionalMenu.get();
 
         menu.setName(menuCreateDto.getName());
-        menu.setItems(menuCreateDto.getItems());
+        menu.getItems().clear();
+        for (String menuItemId : menuCreateDto.getItemIds()) {
+            Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(menuItemId));
+            if (menuItem.isEmpty())
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            menu.getItems().add(menuItem.get());
+        }
 
         return ResponseEntity.status(HttpStatus.OK).body(menuMapper.toDto(menuRepository.save(menu)));
     }
