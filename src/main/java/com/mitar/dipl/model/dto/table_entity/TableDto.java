@@ -13,4 +13,5 @@ public class TableDto {
     private Integer capacity;
     private Boolean isAvailable;
     private Set<ReservationDto> reservations;
+
 }

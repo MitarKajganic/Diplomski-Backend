@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.Where;
@@ -22,7 +23,8 @@ public class Reservation {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(nullable = false)
+    @CreationTimestamp
+    @Column(name = "reservation_time", updatable = false, nullable = false)
     private LocalDateTime reservationTime;
 
     @Column(nullable = false)

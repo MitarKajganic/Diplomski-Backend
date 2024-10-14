@@ -1,6 +1,5 @@
 package com.mitar.dipl.model.entity;
 
-import com.mitar.dipl.model.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -29,7 +28,7 @@ public class User {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    private Role role; // ADMIN, STAFF, CUSTOMER
+    private String role; // ADMIN, STAFF, CUSTOMER
 
     @OneToMany(mappedBy = "user")
     private Set<Reservation> reservations;
