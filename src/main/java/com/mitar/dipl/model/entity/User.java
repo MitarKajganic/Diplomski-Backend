@@ -3,15 +3,16 @@ package com.mitar.dipl.model.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
 @Data
-public class User {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue
@@ -39,4 +40,13 @@ public class User {
         this.password = bCryptPasswordEncoder.encode(plainTextPassword);
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(() -> "ROLE_" + role.toUpperCase());
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
 }

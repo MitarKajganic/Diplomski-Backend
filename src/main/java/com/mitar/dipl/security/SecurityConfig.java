@@ -2,6 +2,9 @@ package com.mitar.dipl.security;
 
 import com.mitar.dipl.exception.JwtAccessDeniedHandler;
 import com.mitar.dipl.exception.JwtAuthenticationEntryPoint;
+import com.mitar.dipl.security.oauth2.CustomOAuth2UserService;
+import com.mitar.dipl.security.oauth2.OAuth2AuthenticationFailureHandler;
+import com.mitar.dipl.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,22 +36,43 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // Disable CSRF as we are using JWT
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // Set session management to stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+
+                // Set unauthorized requests exception handler
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
-                .authenticationProvider(authenticationProvider())
+
+                // Set permissions on endpoints
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll() // Allow access to authentication endpoints
+                        .anyRequest().authenticated() // Require authentication for all other endpoints
+                )
+
+                // OAuth2 Login Configuration
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/api/auth/login") // Custom login page (optional)
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService) // Injected CustomOAuth2UserService
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler) // Injected success handler
+                        .failureHandler(oAuth2AuthenticationFailureHandler) // Injected failure handler
+                )
+
+                // Add JWT token filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

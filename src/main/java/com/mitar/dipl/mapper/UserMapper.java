@@ -23,6 +23,7 @@ public class UserMapper {
         user.setEmail(userCreateDto.getEmail());
         user.setHashPassword(userCreateDto.getPassword());
         user.setRole(Role.CUSTOMER);
+        user.setActive(true);
         return user;
     }
 
