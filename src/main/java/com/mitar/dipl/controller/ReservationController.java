@@ -3,6 +3,7 @@ package com.mitar.dipl.controller;
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
 import com.mitar.dipl.service.ReservationService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;

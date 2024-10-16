@@ -15,4 +15,7 @@ public class InventoryCreateDto {
     @NotEmpty(message = "Unit cannot be empty")
     private String unit;
 
+    @NotNull(message = "Quantity cannot be null")
+    private Integer quantity;
+
 }

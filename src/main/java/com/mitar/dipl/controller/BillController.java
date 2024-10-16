@@ -29,14 +29,4 @@ public class BillController {
         return billService.createBill(billCreateDto);
     }
 
-    @DeleteMapping("/delete/{billId}")
-    public ResponseEntity<?> deleteBill(@PathVariable String billId) {
-        return billService.deleteBill(billId);
-    }
-
-    @PutMapping("/update/{billId}")
-    public ResponseEntity<?> updateBill(@PathVariable String billId, @RequestBody @Validated BillCreateDto billCreateDto) {
-        return billService.updateBill(billId, billCreateDto);
-    }
-
 }

@@ -38,7 +38,10 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public ResponseEntity<?> getBillByOrderId(String orderId) {
-        Optional<Bill> bill = billRepository.findByOrder(orderRepository.findById(UUID.fromString(orderId)).get());
+        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        if (order.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        Optional<Bill> bill = billRepository.findByOrder(order.get());
         if (bill.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(bill.get()));
@@ -49,30 +52,4 @@ public class BillServiceImpl implements BillService {
         return ResponseEntity.status(HttpStatus.CREATED).body(billMapper.toDto(billRepository.save(billMapper.toEntity(billCreateDto))));
     }
 
-    @Override
-    public ResponseEntity<?> deleteBill(String id) {
-        Optional<Bill> bill = billRepository.findById(UUID.fromString(id));
-        if (bill.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        billRepository.delete(bill.get());
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
-    @Override
-    public ResponseEntity<?> updateBill(String id, BillCreateDto billCreateDto) {
-        Optional<Bill> optionalBill = billRepository.findById(UUID.fromString(id));
-        if (optionalBill.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        Bill bill = optionalBill.get();
-
-        bill.setTotalAmount(billCreateDto.getTotalAmount());
-        bill.setTax(billCreateDto.getTax());
-        bill.setDiscount(billCreateDto.getDiscount());
-
-        Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
-        if (order.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        bill.setOrder(order.get());
-        return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(billRepository.save(bill)));
-    }
 }

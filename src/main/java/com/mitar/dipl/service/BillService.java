@@ -11,8 +11,4 @@ public interface BillService {
 
     ResponseEntity<?> createBill(BillCreateDto billCreateDto);
 
-    ResponseEntity<?> deleteBill(String id);
-
-    ResponseEntity<?> updateBill(String id, BillCreateDto billCreateDto);
-
 }

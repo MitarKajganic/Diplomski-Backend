@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
@@ -47,15 +48,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> getReservationById(String reservationId) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(reservationId);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid reservation ID format: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid reservation ID format.");
-        }
-
-        Optional<Reservation> reservation = reservationRepository.findById(uuid);
+        Optional<Reservation> reservation = reservationRepository.findById(UUID.fromString(reservationId));
         if (reservation.isEmpty()) {
             logger.warn("Reservation not found with ID: {}", reservationId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found.");
@@ -65,26 +58,12 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> getReservationsByUserId(String userId) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(userId);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid user ID format: {}", userId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid user ID format.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByUser_Id(uuid));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByUser_Id(UUID.fromString(userId)));
     }
 
     @Override
     public ResponseEntity<?> getReservationsByTableId(String tableId) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(tableId);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid table ID format: {}", tableId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid table ID format.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByTable_Id(uuid));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByTable_Id(UUID.fromString(tableId)));
     }
 
     @Override
@@ -98,7 +77,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> getReservationsByGuestEmail(String guestEmail) {
-        if (isNullOrEmpty(guestEmail) || isValidEmail(guestEmail)) {
+        if (isNullOrEmpty(guestEmail) || isInvalidEmail(guestEmail)) {
             logger.warn("Invalid guest email: {}", guestEmail);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Valid guest email is required.");
         }
@@ -107,7 +86,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> getReservationsByGuestPhone(String guestPhone) {
-        if (isNullOrEmpty(guestPhone) || isValidPhone(guestPhone)) {
+        if (isNullOrEmpty(guestPhone) || isInvalidPhone(guestPhone)) {
             logger.warn("Invalid guest phone: {}", guestPhone);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Valid guest phone number is required.");
         }
@@ -151,22 +130,14 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> deleteReservation(String reservationId) {
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(reservationId);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid reservation ID format: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid reservation ID format.");
-        }
-
-        Optional<Reservation> reservation = reservationRepository.findById(uuid);
+        Optional<Reservation> reservation = reservationRepository.findById(UUID.fromString(reservationId));
         if (reservation.isEmpty()) {
             logger.warn("Reservation not found with ID: {}", reservationId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found.");
         }
         reservationRepository.delete(reservation.get());
         logger.info("Reservation deleted successfully: {}", reservationId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity.status(HttpStatus.OK).body("Reservation deleted successfully.");
     }
 
     @Override
@@ -229,16 +200,11 @@ public class ReservationServiceImpl implements ReservationService {
      * @return error message if validation fails, otherwise null
      */
     private String validateReservationData(Reservation reservation) {
-        if (reservation.getTable() == null) {
-            return "Table not found.";
-        }
+        LocalDate reservationDate = reservation.getReservationTime().toLocalDate();
+        LocalDate today = LocalDate.now();
 
-        if (reservation.getReservationTime() == null) {
-            return "Reservation time is required.";
-        }
-
-        if (reservation.getReservationTime().isBefore(LocalDateTime.now())) {
-            return "Reservation time must be in the future.";
+        if (!reservationDate.isAfter(today)) {
+            return "Reservation time must be at least the next day.";
         }
 
         LocalTime reservationStart = reservation.getReservationTime().toLocalTime();
@@ -248,29 +214,9 @@ public class ReservationServiceImpl implements ReservationService {
             return "Reservation time is outside business hours.";
         }
 
-        if (reservation.getUser() == null) {
-            if (isNullOrEmpty(reservation.getGuestName())) {
-                return "Guest name is required.";
-            }
-            if (isNullOrEmpty(reservation.getGuestEmail()) || isValidEmail(reservation.getGuestEmail())) {
-                return "Valid guest email is required.";
-            }
-            if (isNullOrEmpty(reservation.getGuestPhone()) || isValidPhone(reservation.getGuestPhone())) {
-                return "Valid guest phone number is required.";
-            }
-        }
-
-        if (isNullOrEmpty(String.valueOf(reservation.getNumberOfGuests()))) {
-            return "Number of guests is required.";
-        }
-
-        if (reservation.getNumberOfGuests() <= 0) {
-            return "Number of guests must be greater than zero.";
-        }
-
         // Additional validations can be added here (e.g., maximum capacity of the table)
 
-        return null; // No validation errors
+        return null;
     }
 
     /**
@@ -284,6 +230,7 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDateTime requestedStart = reservation.getReservationTime();
         LocalDateTime requestedEnd = requestedStart.plus(RESERVATION_DURATION).plus(BUFFER_DURATION);
 
+        // Check for overlapping reservations within the reservation duration and buffer
         return reservationRepository.existsByTable_IdAndReservationTimeBetween(
                 tableId,
                 requestedStart.minus(RESERVATION_DURATION).minus(BUFFER_DURATION),
@@ -294,7 +241,7 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the reservation overlaps with existing reservations, excluding a specific reservation ID.
      *
-     * @param reservation    the reservation to check
+     * @param reservation the reservation to check
      * @param excludeResId the reservation ID to exclude from the check
      * @return true if overlapping exists, otherwise false
      */
@@ -303,6 +250,7 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDateTime requestedStart = reservation.getReservationTime();
         LocalDateTime requestedEnd = requestedStart.plus(RESERVATION_DURATION).plus(BUFFER_DURATION);
 
+        // Check for overlapping reservations within the reservation duration and buffer, excluding current reservation
         return reservationRepository.existsByTable_IdAndReservationTimeBetweenAndIdNot(
                 tableId,
                 requestedStart.minus(RESERVATION_DURATION).minus(BUFFER_DURATION),
@@ -326,7 +274,7 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the user already has a reservation at the specified time, excluding a specific reservation ID.
      *
-     * @param reservation    the reservation entity
+     * @param reservation the reservation entity
      * @param excludeResId the reservation ID to exclude from the check
      * @return true if the user has an existing reservation at the time, otherwise false
      */
@@ -351,7 +299,7 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the guest already has a reservation at the specified time, excluding a specific reservation ID.
      *
-     * @param reservation    the reservation entity
+     * @param reservation the reservation entity
      * @param excludeResId the reservation ID to exclude from the check
      * @return true if the guest has an existing reservation at the time, otherwise false
      */
@@ -363,16 +311,34 @@ public class ReservationServiceImpl implements ReservationService {
 
     // ------------------- Private Helper Methods -------------------
 
+    /**
+     * Checks if a string is null or empty after trimming.
+     *
+     * @param value the string to check
+     * @return true if null or empty, otherwise false
+     */
     private boolean isNullOrEmpty(String value) {
         return value == null || value.trim().isEmpty();
     }
 
-    private boolean isValidEmail(String email) {
+    /**
+     * Validates the format of an email address.
+     *
+     * @param email the email to validate
+     * @return true if invalid, otherwise false
+     */
+    private boolean isInvalidEmail(String email) {
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         return !Pattern.compile(emailRegex).matcher(email).matches();
     }
 
-    private boolean isValidPhone(String phone) {
+    /**
+     * Validates the format of a phone number.
+     *
+     * @param phone the phone number to validate
+     * @return true if invalid, otherwise false
+     */
+    private boolean isInvalidPhone(String phone) {
         String phoneRegex = "^\\+?[0-9]{7,15}$";
         return !Pattern.compile(phoneRegex).matcher(phone).matches();
     }

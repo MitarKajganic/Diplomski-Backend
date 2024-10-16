@@ -14,8 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -74,12 +77,18 @@ public class MenuServiceImpl implements MenuService {
 
         menu.setName(menuCreateDto.getName());
         menu.getItems().clear();
-        for (String menuItemId : menuCreateDto.getItemIds()) {
-            Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(menuItemId));
-            if (menuItem.isEmpty())
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            menu.getItems().add(menuItem.get());
-        }
+
+        List<UUID> menuItemIds = menuCreateDto.getItemIds().stream()
+                .map(UUID::fromString)
+                .toList();
+
+        List<MenuItem> menuItems = menuItemIds.stream()
+                .map(menuItemRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
+
+        menu.setItems(new HashSet<>(menuItems));
 
         return ResponseEntity.status(HttpStatus.OK).body(menuMapper.toDto(menuRepository.save(menu)));
     }

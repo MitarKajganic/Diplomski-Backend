@@ -4,6 +4,7 @@ package com.mitar.dipl.controller;
 import com.mitar.dipl.model.dto.staff.StaffCreateDto;
 import com.mitar.dipl.service.StaffService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,8 @@ public class StaffController {
 
     @GetMapping("/position/{position}")
     public ResponseEntity<?> getStaffByPosition(@PathVariable String position) {
+        if (!position.equals("WAITER") && !position.equals("COOK") && !position.equals("BARTENDER") && !position.equals("MANAGER"))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid position.");
         return staffService.getStaffByPosition(position);
     }
 

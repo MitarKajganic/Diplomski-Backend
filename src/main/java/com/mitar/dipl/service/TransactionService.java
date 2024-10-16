@@ -13,6 +13,4 @@ public interface TransactionService {
 
     ResponseEntity<?> createTransaction(TransactionCreateDto transactionCreateDto);
 
-    ResponseEntity<?> deleteTransaction(String transactionId);
-
 }

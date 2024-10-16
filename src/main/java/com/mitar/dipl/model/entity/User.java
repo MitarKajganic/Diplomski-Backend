@@ -33,7 +33,7 @@ public class User implements UserDetails {
     private Boolean active;
 
     @OneToMany(mappedBy = "user")
-    private Set<Reservation> reservations;
+    private Set<Reservation> reservations = new HashSet<>();
 
     public void setHashPassword(String plainTextPassword) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(9);

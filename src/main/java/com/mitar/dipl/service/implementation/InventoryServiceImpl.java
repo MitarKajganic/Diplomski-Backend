@@ -61,6 +61,7 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = optionalInventory.get();
 
         inventory.setItemName(inventoryCreateDto.getItemName());
+        inventory.setQuantity(inventoryCreateDto.getQuantity());
         inventory.setUnit(inventoryCreateDto.getUnit());
 
         return ResponseEntity.status(HttpStatus.OK).body(inventoryMapper.toDto(inventoryRepository.save(inventory)));

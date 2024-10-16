@@ -34,8 +34,4 @@ public class TransactionController {
         return transactionService.createTransaction(transactionCreateDto);
     }
 
-    @DeleteMapping("/delete/{transactionId}")
-    public ResponseEntity<?> deleteTransaction(@PathVariable String transactionId) {
-        return transactionService.deleteTransaction(transactionId);
-    }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,6 +25,6 @@ public class TableEntity {
     private Boolean isAvailable;
 
     @OneToMany(mappedBy = "table")
-    private Set<Reservation> reservations;
+    private Set<Reservation> reservations = new HashSet<>();
 
 }

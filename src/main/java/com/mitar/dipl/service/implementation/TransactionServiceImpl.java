@@ -48,13 +48,4 @@ public class TransactionServiceImpl implements TransactionService {
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionRepository.save(transactionMapper.toEntity(transactionCreateDto)));
     }
 
-    @Override
-    public ResponseEntity<?> deleteTransaction(String transactionId) {
-        Optional<Transaction> transaction = transactionRepository.findById(UUID.fromString(transactionId));
-        if (transaction.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        transactionRepository.delete(transaction.get());
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
 }

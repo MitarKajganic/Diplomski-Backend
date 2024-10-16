@@ -5,6 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.awt.*;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,6 +23,6 @@ public class Menu {
     private String name; // e.g., Breakfast, Lunch, Dinner
 
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL)
-    private Set<MenuItem> items;
+    private Set<MenuItem> items = new HashSet<>();
 
 }
