@@ -65,7 +65,8 @@ public class SecurityConfig {
 
                 // Set permissions on endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Allow access to authentication endpoints
+                        .requestMatchers("/api/auth/**").permitAll()// Allow access to authentication endpoints
+                        .requestMatchers("/users/create").permitAll() // Allow access to user endpoints
                         .anyRequest().authenticated() // Require authentication for all other endpoints
                 )
 

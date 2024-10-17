@@ -26,7 +26,7 @@ public class ReservationCreateDto {
 
     @NotNull(message = "Guest name is required.")
     @NotEmpty(message = "Guest name cannot be empty.")
-    @Min(value = 2, message = "Guest name must be at least 2 characters long.")
+    @Size(min = 2, message = "Guest name must be at least 2 characters long.")
     private String guestName;
 
     @Email(message = "Invalid guest email format.")
