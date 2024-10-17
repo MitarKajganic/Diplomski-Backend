@@ -27,25 +27,6 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseEntity<?> login(String email, String password) {
-        Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(9);
-
-        if (!user.get().getPassword().equals(bCryptPasswordEncoder.encode(password)))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-
-
-
-        long expirationTime = 18 * 60 * 60 * 1000;
-
-//        return ResponseEntity.status(HttpStatus.OK).body(new TokenResponseDto(tokenService.generate(claims, expirationTime)));
-        return ResponseEntity.status(HttpStatus.OK).body(null);
-    }
-
-    @Override
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll());
     }

@@ -48,7 +48,6 @@ public class JwtUtil {
             parseClaims(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
-            // Log the exception as needed
             return false;
         }
     }

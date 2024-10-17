@@ -5,8 +5,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface UserService {
 
-    ResponseEntity<?> login(String email, String password);
-
     ResponseEntity<?> getAllUsers();
 
     ResponseEntity<?> getUserById(String userId);
