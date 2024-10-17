@@ -23,7 +23,11 @@ public class Transaction {
     @CreationTimestamp
     @Column(name = "transaction_time", updatable = false, nullable = false)
     private LocalDateTime transactionTime;
+
+    @Column(nullable = false)
     private BigDecimal amount;
+
+    @Column(nullable = false)
     private String type; // e.g., PAYMENT, REFUND
 
     @ManyToOne

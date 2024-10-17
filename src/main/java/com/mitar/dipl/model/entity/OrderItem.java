@@ -18,7 +18,10 @@ public class OrderItem {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private Integer quantity;
+
+    @Column(nullable = false)
     private BigDecimal price; // Price at the time of order
 
     @ManyToOne

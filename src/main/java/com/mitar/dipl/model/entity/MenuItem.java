@@ -18,9 +18,16 @@ public class MenuItem {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String description;
+
+    @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(nullable = false)
     private String category; // e.g., Appetizer, Main Course, Dessert
 
     @ManyToOne

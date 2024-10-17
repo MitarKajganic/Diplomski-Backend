@@ -21,9 +21,15 @@ public class Bill {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private BigDecimal totalAmount;
+
+    @Column(nullable = false)
     private BigDecimal tax;
+
+    @Column(nullable = false)
     private BigDecimal discount;
+
     private BigDecimal finalAmount;
 
     @CreationTimestamp

@@ -26,6 +26,7 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = false)
     private String status; // e.g., PENDING, COMPLETED, CANCELLED
 
     @ManyToOne

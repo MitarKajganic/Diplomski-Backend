@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 
 public interface InventoryService {
 
+    ResponseEntity<?> getInventories();
+
     ResponseEntity<?> getInventoryById(String inventoryId);
 
     ResponseEntity<?> getInventoryByIngredientName(String itemName);

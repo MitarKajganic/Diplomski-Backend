@@ -17,9 +17,16 @@ public class Staff {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private String surname;
+
+    @Column(nullable = false)
     private String position;
+
+    @Column(nullable = false)
     private String contactInfo;
 
     @OneToOne

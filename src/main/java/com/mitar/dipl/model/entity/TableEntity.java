@@ -20,8 +20,13 @@ public class TableEntity {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private Integer tableNumber;
+
+    @Column(nullable = false)
     private Integer capacity;
+
+    @Column(nullable = false)
     private Boolean isAvailable;
 
     @OneToMany(mappedBy = "table")

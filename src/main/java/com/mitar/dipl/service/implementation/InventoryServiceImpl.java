@@ -24,6 +24,11 @@ public class InventoryServiceImpl implements InventoryService {
     private InventoryMapper inventoryMapper;
 
     @Override
+    public ResponseEntity<?> getInventories() {
+        return ResponseEntity.status(HttpStatus.OK).body(inventoryRepository.findAll());
+    }
+
+    @Override
     public ResponseEntity<?> getInventoryById(String inventoryId) {
         Optional<Inventory> inventory = inventoryRepository.findById(UUID.fromString(inventoryId));
         if (inventory.isEmpty())

@@ -20,6 +20,7 @@ public class Menu {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
+    @Column(nullable = false)
     private String name; // e.g., Breakfast, Lunch, Dinner
 
     @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL)
