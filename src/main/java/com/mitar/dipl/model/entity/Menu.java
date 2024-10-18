@@ -2,6 +2,8 @@ package com.mitar.dipl.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.awt.*;
@@ -11,7 +13,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "menus")
-@Data
+@Getter
+@Setter
 public class Menu {
 
     @Id

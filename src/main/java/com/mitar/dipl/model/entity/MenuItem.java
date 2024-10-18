@@ -3,6 +3,8 @@ package com.mitar.dipl.model.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -10,7 +12,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "menu_items")
-@Data
+@Getter
+@Setter
 public class MenuItem {
 
     @Id

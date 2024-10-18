@@ -1,12 +1,15 @@
 package com.mitar.dipl.repository;
 
 import com.mitar.dipl.model.entity.Reservation;
+import com.mitar.dipl.model.entity.TableEntity;
+import com.mitar.dipl.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -37,4 +40,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, UUID> 
 
     boolean existsByGuestEmailAndReservationTimeAndIdNot(String guestEmail, LocalDateTime reservationTime, UUID id);
 
+    Optional<Reservation> findByUserAndTable(User user, TableEntity table);
 }
