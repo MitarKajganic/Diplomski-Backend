@@ -1,5 +1,7 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.mitar.dipl.model.entity.enums.Position;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -24,13 +26,14 @@ public class Staff {
     private String surname;
 
     @Column(nullable = false)
-    private String position;
+    private Position position;
 
     @Column(nullable = false)
     private String contactInfo;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
 }

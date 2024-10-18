@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,12 +31,14 @@ public class Reservation {
     @Column(nullable = false)
     private int numberOfGuests;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user; // The customer who made the reservation (optional)
+    @JsonBackReference
+    private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "table_id", nullable = false)
+    @JsonBackReference
     private TableEntity table;
 
     @Column(name = "guest_name")

@@ -24,9 +24,9 @@ public class Inventory {
     private Integer quantity;
 
     @Column(nullable = false)
-    private String unit; // e.g., kg, liters
+    private String unit;
 
     @Column(nullable = false)
-    private Boolean lowStock; // Flag for low stock alerts
+    private Boolean lowStock;
 
 }

@@ -1,6 +1,8 @@
 package com.mitar.dipl.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.mitar.dipl.model.entity.enums.Status;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "orders")
 @Data
-public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order'
+public class OrderEntity { // Renamed to OrderEntity to avoid conflict with SQL 'Order'
 
     @Id
     @GeneratedValue
@@ -26,17 +28,19 @@ public class Order { // Renamed to OrderEntity to avoid conflict with SQL 'Order
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // e.g., PENDING, COMPLETED, CANCELLED
+    private Status status; // e.g., PENDING, COMPLETED, CANCELLED
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // The customer who placed the order
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<OrderItem> orderItems = new HashSet<>();
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "orderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private Bill bill;
 

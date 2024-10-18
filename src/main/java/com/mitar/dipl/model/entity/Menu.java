@@ -21,9 +21,9 @@ public class Menu {
     private UUID id;
 
     @Column(nullable = false)
-    private String name; // e.g., Breakfast, Lunch, Dinner
+    private String name;
 
-    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "menu", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<MenuItem> items = new HashSet<>();
 
 }

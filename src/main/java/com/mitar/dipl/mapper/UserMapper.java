@@ -14,7 +14,7 @@ public class UserMapper {
         userDto.setId(user.getId().toString());
         userDto.setEmail(user.getEmail());
         userDto.setReservations(user.getReservations());
-        userDto.setRole(user.getRole());
+        userDto.setRole(user.getRole().name());
         return userDto;
     }
 

@@ -3,6 +3,7 @@ package com.mitar.dipl.mapper;
 import com.mitar.dipl.model.dto.staff.StaffCreateDto;
 import com.mitar.dipl.model.dto.staff.StaffDto;
 import com.mitar.dipl.model.entity.Staff;
+import com.mitar.dipl.model.entity.enums.Position;
 import com.mitar.dipl.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ public class StaffMapper {
         staffDto.setId(staff.getId().toString());
         staffDto.setName(staff.getName());
         staffDto.setSurname(staff.getSurname());
-        staffDto.setPosition(staff.getPosition());
+        staffDto.setPosition(staff.getPosition().name());
         staffDto.setContactInfo(staff.getContactInfo());
         staffDto.setUserId(staff.getUser().getId().toString());
         return staffDto;
@@ -30,7 +31,7 @@ public class StaffMapper {
         Staff staff = new Staff();
         staff.setName(staffCreateDto.getName());
         staff.setSurname(staffCreateDto.getSurname());
-        staff.setPosition(staffCreateDto.getPosition());
+        staff.setPosition(Position.valueOf(staffCreateDto.getPosition()));
         staff.setContactInfo(staffCreateDto.getContactInfo());
         userRepository.findById(UUID.fromString(staffCreateDto.getUserId())).ifPresent(staff::setUser);
         return staff;

@@ -3,7 +3,7 @@ package com.mitar.dipl.service.implementation;
 import com.mitar.dipl.mapper.OrderItemMapper;
 import com.mitar.dipl.model.dto.order_item.OrderItemCreateDto;
 import com.mitar.dipl.model.entity.MenuItem;
-import com.mitar.dipl.model.entity.Order;
+import com.mitar.dipl.model.entity.OrderEntity;
 import com.mitar.dipl.model.entity.OrderItem;
 import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.OrderItemRepository;
@@ -73,10 +73,10 @@ public class OrderItemServiceImpl implements OrderItemService {
 
         orderItem.setPrice(orderItemCreateDto.getPrice());
         orderItem.setQuantity(orderItemCreateDto.getQuantity());
-        Optional<Order> order = orderRepository.findById(UUID.fromString(orderItemCreateDto.getOrderId()));
+        Optional<OrderEntity> order = orderRepository.findById(UUID.fromString(orderItemCreateDto.getOrderId()));
         if (order.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        orderItem.setOrder(order.get());
+        orderItem.setOrderEntity(order.get());
         Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(orderItemCreateDto.getMenuItemId()));
         if (menuItem.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

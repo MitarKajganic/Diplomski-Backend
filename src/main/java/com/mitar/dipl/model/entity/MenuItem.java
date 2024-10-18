@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -28,10 +29,11 @@ public class MenuItem {
     private BigDecimal price;
 
     @Column(nullable = false)
-    private String category; // e.g., Appetizer, Main Course, Dessert
+    private String category;
 
-    @ManyToOne
-    @JoinColumn(name = "menu_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "menu_id")
+    @JsonBackReference
     private Menu menu;
 
 }

@@ -4,6 +4,7 @@ package com.mitar.dipl.service.implementation;
 import com.mitar.dipl.mapper.StaffMapper;
 import com.mitar.dipl.model.dto.staff.StaffCreateDto;
 import com.mitar.dipl.model.entity.Staff;
+import com.mitar.dipl.model.entity.enums.Position;
 import com.mitar.dipl.repository.StaffRepository;
 import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.StaffService;
@@ -51,7 +52,7 @@ public class StaffServiceImpl implements StaffService {
 
     @Override
     public ResponseEntity<?> getStaffByPosition(String position) {
-        return ResponseEntity.status(HttpStatus.OK).body(staffRepository.findAllByPosition(position));
+        return ResponseEntity.status(HttpStatus.OK).body(staffRepository.findAllByPosition(Position.valueOf(position)));
     }
 
     @Override
@@ -77,7 +78,7 @@ public class StaffServiceImpl implements StaffService {
         Staff staff = optionalStaff.get();
         staff.setName(staffCreateDto.getName());
         staff.setSurname(staffCreateDto.getSurname());
-        staff.setPosition(staffCreateDto.getPosition());
+        staff.setPosition(Position.valueOf(staffCreateDto.getPosition()));
         staff.setContactInfo(staffCreateDto.getContactInfo());
 
         userRepository.findById(UUID.fromString(staffCreateDto.getUserId())).ifPresent(staff::setUser);

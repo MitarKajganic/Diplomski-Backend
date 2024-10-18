@@ -3,7 +3,7 @@ package com.mitar.dipl.service.implementation;
 import com.mitar.dipl.mapper.BillMapper;
 import com.mitar.dipl.model.dto.bill.BillCreateDto;
 import com.mitar.dipl.model.entity.Bill;
-import com.mitar.dipl.model.entity.Order;
+import com.mitar.dipl.model.entity.OrderEntity;
 import com.mitar.dipl.repository.BillRepository;
 import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.service.BillService;
@@ -38,10 +38,10 @@ public class BillServiceImpl implements BillService {
 
     @Override
     public ResponseEntity<?> getBillByOrderId(String orderId) {
-        Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        Optional<OrderEntity> order = orderRepository.findById(UUID.fromString(orderId));
         if (order.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        Optional<Bill> bill = billRepository.findByOrder(order.get());
+        Optional<Bill> bill = billRepository.findByOrderEntity(order.get());
         if (bill.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(bill.get()));

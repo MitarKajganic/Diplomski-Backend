@@ -1,5 +1,7 @@
 package com.mitar.dipl.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.mitar.dipl.model.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -26,14 +28,19 @@ public class User implements UserDetails {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String role; // ADMIN, STAFF, CUSTOMER
+    private Role role; // ADMIN, STAFF, CUSTOMER
 
     @Column(nullable = false)
     private Boolean active;
 
     @OneToMany(mappedBy = "user")
     private Set<Reservation> reservations = new HashSet<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Staff staff;
 
     public void setHashPassword(String plainTextPassword) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(9);
@@ -42,11 +49,32 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(() -> "ROLE_" + role.toUpperCase());
+        return Collections.singletonList(() -> "ROLE_" + role.name());
     }
 
     @Override
     public String getUsername() {
         return email;
     }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return active;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return active;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return active;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return active;
+    }
+
 }

@@ -3,7 +3,7 @@ package com.mitar.dipl.mapper;
 import com.mitar.dipl.model.dto.bill.BillCreateDto;
 import com.mitar.dipl.model.dto.bill.BillDto;
 import com.mitar.dipl.model.entity.Bill;
-import com.mitar.dipl.model.entity.Order;
+import com.mitar.dipl.model.entity.OrderEntity;
 import com.mitar.dipl.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ public class BillMapper {
     public BillDto toDto(Bill bill) {
         BillDto billDto = new BillDto();
         billDto.setId(bill.getId().toString());
-        billDto.setOrderId(bill.getOrder().getId().toString());
+        billDto.setOrderId(bill.getOrderEntity().getId().toString());
         billDto.setTotalAmount(bill.getTotalAmount());
         billDto.setTax(bill.getTax());
         billDto.setDiscount(bill.getDiscount());
@@ -34,9 +34,9 @@ public class BillMapper {
         bill.setTotalAmount(billCreateDto.getTotalAmount());
         bill.setTax(billCreateDto.getTax());
         bill.setDiscount(billCreateDto.getDiscount());
-        Optional<Order> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
+        Optional<OrderEntity> order = orderRepository.findById(UUID.fromString(billCreateDto.getOrderId()));
         if (order.isPresent()) {
-            bill.setOrder(order.get());
+            bill.setOrderEntity(order.get());
             order.get().setBill(bill);
             orderRepository.save(order.get());
         }

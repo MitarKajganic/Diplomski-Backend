@@ -1,6 +1,7 @@
 package com.mitar.dipl.security.oauth2;
 
 import com.mitar.dipl.model.entity.User;
+import com.mitar.dipl.model.entity.enums.Role;
 import com.mitar.dipl.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -52,7 +53,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 //        user.setName(name);
 //        user.setPicture(picture);
 //        user.setProvider("google");
-        user.setRole("CUSTOMER"); // Assign default role
+        user.setRole(Role.CUSTOMER); // Assign default role
         user.setActive(true);
         // Hash a default password or handle appropriately
         user.setPassword("N/A"); // Not applicable for OAuth2 users

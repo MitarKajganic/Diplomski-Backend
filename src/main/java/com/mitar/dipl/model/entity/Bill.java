@@ -36,10 +36,10 @@ public class Bill {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     @JsonManagedReference
-    private Order order;
+    private OrderEntity orderEntity;
 
     @PrePersist
     public void calculateFinalAmount() {
