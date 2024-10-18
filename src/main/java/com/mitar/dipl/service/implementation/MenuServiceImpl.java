@@ -1,23 +1,23 @@
 package com.mitar.dipl.service.implementation;
 
-import com.mitar.dipl.mapper.MenuItemMapper;
 import com.mitar.dipl.mapper.MenuMapper;
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
+import com.mitar.dipl.model.dto.menu.MenuDto;
 import com.mitar.dipl.model.entity.Menu;
 import com.mitar.dipl.model.entity.MenuItem;
 import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.MenuRepository;
+import com.mitar.dipl.repository.OrderItemRepository;
 import com.mitar.dipl.service.MenuService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import jakarta.transaction.Transactional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,72 +25,133 @@ import java.util.stream.Collectors;
 @Transactional
 public class MenuServiceImpl implements MenuService {
 
-    private MenuRepository menuRepository;
+    private static final Logger logger = LoggerFactory.getLogger(MenuServiceImpl.class);
 
-    private MenuMapper menuMapper;
-
-    private MenuItemMapper menuItemMapper;
-
-    private MenuItemRepository menuItemRepository;
+    private final MenuRepository menuRepository;
+    private final MenuMapper menuMapper;
+    private final MenuItemRepository menuItemRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     public ResponseEntity<?> getAllMenus() {
-        return ResponseEntity.status(HttpStatus.OK).body(menuRepository.findAll());
+        return ResponseEntity.ok(menuRepository.findAll().stream()
+                .map(menuMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getMenuById(String menuId) {
-        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
-        if (menu.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(menu.get());
+        UUID parsedMenuId;
+        try {
+            parsedMenuId = UUID.fromString(menuId);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for Menu ID: {}", menuId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
+        }
+
+        Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
+        if (menuOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+        }
+
+        MenuDto dto = menuMapper.toDto(menuOpt.get());
+        return ResponseEntity.ok(dto);
     }
 
     @Override
     public ResponseEntity<?> getMenuByMenuName(String menuName) {
-        Optional<Menu> menu = menuRepository.findByName(menuName);
-        if (menu.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(menu.get());
+        Optional<Menu> menuOpt = menuRepository.findByName(menuName);
+        if (menuOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+        }
+
+        MenuDto dto = menuMapper.toDto(menuOpt.get());
+        return ResponseEntity.ok(dto);
     }
 
     @Override
     public ResponseEntity<?> createMenu(MenuCreateDto menuCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(menuRepository.save(menuMapper.toEntity(menuCreateDto)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                menuMapper.toDto(menuRepository.save(menuMapper.toEntity(menuCreateDto))));
     }
 
     @Override
     public ResponseEntity<?> deleteMenu(String menuId) {
-        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
-        if (menu.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        menuRepository.delete(menu.get());
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        UUID parsedMenuId;
+        try {
+            parsedMenuId = UUID.fromString(menuId);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for deletion: {}", menuId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
+        }
+
+        Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
+        if (menuOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+        }
+
+        Menu menu = menuOpt.get();
+
+        Set<MenuItem> itemsCopy = new HashSet<>(menu.getItems());
+        for (MenuItem item : itemsCopy)
+            menu.removeMenuItem(item);
+
+
+        menuRepository.delete(menu);
+        return ResponseEntity.ok("Menu deleted successfully.");
     }
 
     @Override
     public ResponseEntity<?> updateMenu(String menuId, MenuCreateDto menuCreateDto) {
-        Optional<Menu> optionalMenu = menuRepository.findById(UUID.fromString(menuId));
-        if (optionalMenu.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        UUID parsedMenuId;
+        try {
+            parsedMenuId = UUID.fromString(menuId);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for update: {}", menuId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
+        }
+
+        Optional<Menu> optionalMenu = menuRepository.findById(parsedMenuId);
+        if (optionalMenu.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+        }
+
         Menu menu = optionalMenu.get();
 
         menu.setName(menuCreateDto.getName());
-        menu.getItems().clear();
 
-        List<UUID> menuItemIds = menuCreateDto.getItemIds().stream()
-                .map(UUID::fromString)
-                .toList();
+        List<UUID> menuItemIds;
+        try {
+            menuItemIds = menuCreateDto.getItemIds().stream()
+                    .map(UUID::fromString)
+                    .collect(Collectors.toList());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid MenuItem IDs in update: {}", menuCreateDto.getItemIds());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One or more MenuItem IDs are invalid UUIDs.");
+        }
 
-        List<MenuItem> menuItems = menuItemIds.stream()
-                .map(menuItemRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
+        List<MenuItem> newMenuItems = menuItemRepository.findAllById(menuItemIds);
 
-        menu.setItems(new HashSet<>(menuItems));
+        if (newMenuItems.size() != menuItemIds.size()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One or more MenuItem IDs do not exist.");
+        }
+
+        // Determine MenuItems to remove and add
+        Set<MenuItem> currentItems = new HashSet<>(menu.getItems());
+        Set<MenuItem> itemsToRemove = new HashSet<>(currentItems);
+        newMenuItems.forEach(itemsToRemove::remove);
+
+        Set<MenuItem> itemsToAdd = new HashSet<>(newMenuItems);
+        itemsToAdd.removeAll(currentItems);
+
+        for (MenuItem item : itemsToRemove)
+            menu.removeMenuItem(item);
+
+
+        for (MenuItem item : itemsToAdd)
+            menu.addMenuItem(item);
 
         return ResponseEntity.status(HttpStatus.OK).body(menuMapper.toDto(menuRepository.save(menu)));
     }
-
 }

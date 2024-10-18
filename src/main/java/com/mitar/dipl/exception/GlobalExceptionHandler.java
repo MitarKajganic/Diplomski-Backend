@@ -3,6 +3,7 @@ package com.mitar.dipl.exception;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,6 +106,27 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST,
                 "Validation Error",
                 errors
+        );
+        return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    // Handle DataIntegrityViolationException
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
+        Throwable cause = ex.getCause();
+        String errorMessage = "Database integrity violation.";
+        if (cause instanceof SQLIntegrityConstraintViolationException) {
+            errorMessage += " " + cause.getMessage();
+        } else {
+            errorMessage += " " + ex.getMessage();
+        }
+
+        logger.warn("DataIntegrityViolationException: {}", errorMessage);
+
+        ApiError apiError = new ApiError(
+                HttpStatus.BAD_REQUEST,
+                "Database Error",
+                errorMessage
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }

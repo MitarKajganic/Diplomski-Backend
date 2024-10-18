@@ -22,7 +22,7 @@ public class MenuItem {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(nullable = false)
@@ -38,5 +38,20 @@ public class MenuItem {
     @JoinColumn(name = "menu_id")
     @JsonBackReference
     private Menu menu;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MenuItem menuItem = (MenuItem) o;
+
+        return id != null ? id.equals(menuItem.id) : menuItem.id == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 
 }

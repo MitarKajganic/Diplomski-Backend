@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.dto.inventory;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class InventoryCreateDto {
     private String unit;
 
     @NotNull(message = "Quantity cannot be null")
+    @Min(value = 0, message = "Quantity cannot be less than 0")
     private Integer quantity;
 
 }

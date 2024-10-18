@@ -2,112 +2,210 @@ package com.mitar.dipl.service.implementation;
 
 import com.mitar.dipl.mapper.MenuItemMapper;
 import com.mitar.dipl.model.dto.menu_item.MenuItemCreateDto;
+import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
 import com.mitar.dipl.model.entity.Menu;
 import com.mitar.dipl.model.entity.MenuItem;
 import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.MenuRepository;
+import com.mitar.dipl.repository.OrderItemRepository;
 import com.mitar.dipl.service.MenuItemService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.UUID;
+import jakarta.transaction.Transactional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
 @Transactional
 public class MenuItemServiceImpl implements MenuItemService {
 
-    private MenuItemRepository menuItemRepository;
+    private static final Logger logger = LoggerFactory.getLogger(MenuItemServiceImpl.class);
 
-    private MenuRepository menuRepository;
-
-    private MenuItemMapper menuItemMapper;
-
+    private final MenuItemRepository menuItemRepository;
+    private final MenuRepository menuRepository;
+    private final OrderItemRepository orderItemRepository;
+    private final MenuItemMapper menuItemMapper;
 
     @Override
     public ResponseEntity<?> getMenuItems() {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                menuItemRepository
-                        .findAll()
-                        .stream()
-                        .map(menuItemMapper::toDto)
+        return ResponseEntity.ok(menuItemRepository.findAll().stream()
+                .map(menuItemMapper::toDto)
+                .toList()
         );
     }
 
     @Override
     public ResponseEntity<?> getMenuItemByName(String name) {
-        Optional<MenuItem> menuItem = menuItemRepository.findByName(name);
-        if (menuItem.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(menuItemMapper.toDto(menuItem.get()));
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findByName(name);
+        if (menuItemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        }
+        MenuItemDto dto = menuItemMapper.toDto(menuItemOpt.get());
+        return ResponseEntity.ok(dto);
+    }
+
+    @Override
+    public ResponseEntity<?> getMenuItemsByNameContaining(String name) {
+        List<MenuItem> menuItems = menuItemRepository.findAllByNameContainingIgnoreCase(name);
+        if (menuItems.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No MenuItems found containing: " + name);
+        }
+        return ResponseEntity.ok(menuItems.stream()
+                .map(menuItemMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getMenuItemById(String id) {
-        Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(id));
-        if (menuItem.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(menuItemMapper.toDto(menuItem.get()));
-    }
+        UUID parsedId;
+        try {
+            parsedId = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format: {}", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid MenuItem ID format.");
+        }
 
-    @Override
-    public ResponseEntity<?> getMenuItemsByMenu(String menuId) {
-        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuId));
-        if (menu.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(
-                menuItemRepository
-                        .findAllByMenu(menu.get())
-                        .stream()
-                        .map(menuItemMapper::toDto)
-        );
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedId);
+        if (menuItemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        }
+        return ResponseEntity.ok(menuItemMapper.toDto(menuItemOpt.get()));
     }
 
     @Override
     public ResponseEntity<?> getMenuItemsByCategory(String category) {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                menuItemRepository
-                        .findAllByCategory(category)
-                        .stream()
-                        .map(menuItemMapper::toDto)
-        );
+        return ResponseEntity.ok(menuItemRepository.findAllByCategory(category).stream()
+                .map(menuItemMapper::toDto)
+                .toList());
     }
 
     @Override
     public ResponseEntity<?> createMenuItem(MenuItemCreateDto menuItemCreateDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                menuItemMapper.toDto(menuItemRepository.save(menuItemMapper.toEntity(menuItemCreateDto)))
-        );
+                menuItemMapper.toDto(menuItemRepository.save(menuItemMapper.toEntity(menuItemCreateDto))));
     }
 
     @Override
     public ResponseEntity<?> deleteMenuItem(String id) {
-        Optional<MenuItem> menuItem = menuItemRepository.findById(UUID.fromString(id));
-        if (menuItem.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        menuItemRepository.delete(menuItem.get());
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        UUID parsedId;
+        try {
+            parsedId = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for deletion: {}", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid MenuItem ID format.");
+        }
+
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedId);
+        if (menuItemOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        }
+
+        MenuItem menuItem = menuItemOpt.get();
+
+        boolean isReferenced = orderItemRepository.existsByMenuItem(menuItem);
+        if (isReferenced) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Cannot delete MenuItem '" + menuItem.getName() + "' as it is associated with existing orders.");
+        }
+
+        Menu menu = menuItem.getMenu();
+        if (menu != null)
+            menu.removeMenuItem(menuItem);
+
+        menuItemRepository.delete(menuItem);
+        return ResponseEntity.ok("MenuItem deleted successfully.");
+    }
+
+    @Override
+    public ResponseEntity<?> deleteMenuItemFromMenu(String menuItemId, String menuId) {
+        UUID parsedMenuItemId;
+        UUID parsedMenuId;
+        try {
+            parsedMenuItemId = UUID.fromString(menuItemId);
+            parsedMenuId = UUID.fromString(menuId);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for MenuItem or Menu: {}, {}", menuItemId, menuId);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid UUID format for MenuItem or Menu.");
+        }
+
+        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedMenuItemId);
+        if (menuItemOpt.isEmpty())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+
+
+        MenuItem menuItem = menuItemOpt.get();
+
+        Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
+        if (menuOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+        }
+
+        Menu menu = menuOpt.get();
+
+        if (!menu.getItems().contains(menuItem)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MenuItem is not associated with the specified Menu.");
+        }
+
+        menu.removeMenuItem(menuItem);
+
+        return ResponseEntity.ok("MenuItem removed from Menu successfully.");
     }
 
     @Override
     public ResponseEntity<?> updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto) {
-        Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(UUID.fromString(id));
-        if (optionalMenuItem.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        UUID parsedId;
+        try {
+            parsedId = UUID.fromString(id);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid UUID format for update: {}", id);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid MenuItem ID format.");
+        }
+
+        Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(parsedId);
+        if (optionalMenuItem.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        }
+
         MenuItem menuItem = optionalMenuItem.get();
 
         menuItem.setName(menuItemCreateDto.getName());
         menuItem.setDescription(menuItemCreateDto.getDescription());
         menuItem.setPrice(menuItemCreateDto.getPrice());
         menuItem.setCategory(menuItemCreateDto.getCategory());
-        Optional<Menu> menu = menuRepository.findById(UUID.fromString(menuItemCreateDto.getMenuId()));
-        menu.ifPresent(menuItem::setMenu);
 
-        return ResponseEntity.status(HttpStatus.OK).body(menuItemMapper.toDto(menuItemRepository.save(menuItem)));
+        UUID newMenuId;
+        try {
+            newMenuId = UUID.fromString(menuItemCreateDto.getMenuId());
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid Menu ID format in update: {}", menuItemCreateDto.getMenuId());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
+        }
+
+        Menu currentMenu = menuItem.getMenu();
+        if (currentMenu == null || !currentMenu.getId().equals(newMenuId)) {
+            Optional<Menu> newMenuOpt = menuRepository.findById(newMenuId);
+            if (newMenuOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("New Menu not found.");
+            }
+
+            Menu newMenu = newMenuOpt.get();
+
+            if (currentMenu != null) {
+                currentMenu.removeMenuItem(menuItem);
+            }
+
+            newMenu.addMenuItem(menuItem);
+        }
+
+        MenuItem updatedMenuItem = menuItemRepository.save(menuItem);
+        MenuItemDto dto = menuItemMapper.toDto(updatedMenuItem);
+        return ResponseEntity.ok(dto);
     }
-
 }

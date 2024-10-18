@@ -16,4 +16,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, UUID> {
     List<OrderItem> findAllByMenuItem_Id(UUID menuItemId);
 
     Optional<OrderItem> findByOrderEntityAndMenuItem(OrderEntity order, MenuItem menuItem);
+
+    boolean existsByMenuItem(MenuItem menuItem);
+
 }

@@ -16,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "orders")
 @Data
-public class OrderEntity { // Renamed to OrderEntity to avoid conflict with SQL 'Order'
+public class OrderEntity {
 
     @Id
     @GeneratedValue

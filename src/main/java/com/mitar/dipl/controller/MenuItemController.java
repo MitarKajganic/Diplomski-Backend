@@ -14,7 +14,7 @@ public class MenuItemController {
 
     private final MenuItemService menuItemService;
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<?> getAllMenuItems() {
         return menuItemService.getMenuItems();
     }
@@ -29,12 +29,12 @@ public class MenuItemController {
         return menuItemService.getMenuItemByName(menuItemName);
     }
 
-    @GetMapping("/menu/{menuId}")
-    public ResponseEntity<?> getMenuItemByMenuId(@PathVariable String menuId) {
-        return menuItemService.getMenuItemsByMenu(menuId);
+    @GetMapping("/name-containing/{menuItemName}")
+    public ResponseEntity<?> getMenuItemsByNameContaining(@PathVariable String menuItemName) {
+        return menuItemService.getMenuItemsByNameContaining(menuItemName);
     }
 
-    @GetMapping("/menu/{category}")
+    @GetMapping("/category/{category}")
     public ResponseEntity<?> getMenuItemByCategory(@PathVariable String category) {
         return menuItemService.getMenuItemsByCategory(category);
     }
@@ -47,6 +47,11 @@ public class MenuItemController {
     @DeleteMapping("/delete/{menuItemId}")
     public ResponseEntity<?> deleteMenuItem(@PathVariable String menuItemId) {
         return menuItemService.deleteMenuItem(menuItemId);
+    }
+
+    @DeleteMapping("/delete/{menuItemId}/{menuId}")
+    public ResponseEntity<?> deleteMenuItemFromMenu(@PathVariable String menuItemId, @PathVariable String menuId) {
+        return menuItemService.deleteMenuItemFromMenu(menuItemId, menuId);
     }
 
     @PutMapping("/update/{menuItemId}")

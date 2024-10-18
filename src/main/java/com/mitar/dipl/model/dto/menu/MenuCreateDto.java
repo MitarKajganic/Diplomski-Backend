@@ -14,8 +14,8 @@ public class MenuCreateDto {
     @NotEmpty(message = "Name cannot be empty")
     private String name;
 
-    @NotNull(message = "Items cannot be null")
-    @Size(min = 1, message = "Items must contain at least one item")
+//    @NotNull(message = "Items cannot be null")
+//    @Size(min = 1, message = "Items must contain at least one item")
     private List<String> itemIds;
 
 }

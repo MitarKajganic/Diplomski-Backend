@@ -23,7 +23,7 @@ public class InventoryMapper {
     public Inventory toEntity(InventoryCreateDto inventoryCreateDto) {
         Inventory inventory = new Inventory();
         inventory.setItemName(inventoryCreateDto.getItemName());
-        inventory.setQuantity(0);
+        inventory.setQuantity(inventoryCreateDto.getQuantity());
         inventory.setUnit(inventoryCreateDto.getUnit());
         inventory.setLowStock(false);
         return inventory;

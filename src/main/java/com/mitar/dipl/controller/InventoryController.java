@@ -17,37 +17,37 @@ public class InventoryController {
 
 
     @GetMapping
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
     public ResponseEntity<?> getInventories() {
         return inventoryService.getInventories();
     }
 
     @GetMapping("/{inventoryId}")
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
     public ResponseEntity<?> getInventoryById(@PathVariable String inventoryId) {
         return inventoryService.getInventoryById(inventoryId);
     }
 
     @GetMapping("/item/{itemName}")
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
     public ResponseEntity<?> getInventoryByItemName(@PathVariable String itemName) {
         return inventoryService.getInventoryByIngredientName(itemName);
     }
 
     @PostMapping
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
     public ResponseEntity<?> createInventory(@RequestBody @Validated InventoryCreateDto inventoryCreateDto) {
         return inventoryService.createInventory(inventoryCreateDto);
     }
 
     @DeleteMapping("/delete/{inventoryId}")
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
     public ResponseEntity<?> deleteInventory(@PathVariable String inventoryId) {
         return inventoryService.deleteInventory(inventoryId);
     }
 
     @PutMapping("/update/{inventoryId}")
-    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
+//    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN"})
     public ResponseEntity<?> updateInventory(@PathVariable String inventoryId, @RequestBody @Validated InventoryCreateDto inventoryCreateDto) {
         return inventoryService.updateInventory(inventoryId, inventoryCreateDto);
     }

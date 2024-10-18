@@ -9,15 +9,17 @@ public interface MenuItemService {
 
     ResponseEntity<?> getMenuItemByName(String name);
 
-    ResponseEntity<?> getMenuItemById(String id);
+    ResponseEntity<?> getMenuItemsByNameContaining(String name);
 
-    ResponseEntity<?> getMenuItemsByMenu(String menuId);
+    ResponseEntity<?> getMenuItemById(String id);
 
     ResponseEntity<?> getMenuItemsByCategory(String category);
 
     ResponseEntity<?> createMenuItem(MenuItemCreateDto menuItemCreateDto);
 
     ResponseEntity<?> deleteMenuItem(String id);
+
+    ResponseEntity<?> deleteMenuItemFromMenu(String menuItemId, String menuId);
 
     ResponseEntity<?> updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto);
 
