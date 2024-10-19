@@ -1,9 +1,13 @@
 package com.mitar.dipl.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mitar.dipl.model.entity.enums.Type;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -13,7 +17,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
-@Data
+@Getter
+@Setter
+@ToString(exclude = {"bill"})
+@EqualsAndHashCode(exclude = {"bill"})
 public class Transaction {
 
     @Id
@@ -22,10 +29,6 @@ public class Transaction {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @CreationTimestamp
-    @Column(name = "transaction_time", updatable = false, nullable = false)
-    private LocalDateTime transactionTime;
-
     @Column(nullable = false)
     private BigDecimal amount;
 
@@ -33,9 +36,12 @@ public class Transaction {
     @Column(nullable = false)
     private Type type; // e.g., PAYMENT, REFUND
 
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false, nullable = false)
+    private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", nullable = false)
-    @JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Bill bill;
-
 }

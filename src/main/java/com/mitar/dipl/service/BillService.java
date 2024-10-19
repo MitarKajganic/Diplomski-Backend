@@ -5,9 +5,9 @@ import org.springframework.http.ResponseEntity;
 
 public interface BillService {
 
-    ResponseEntity<?> getBillById(String id);
+    ResponseEntity<?> getAll();
 
-    ResponseEntity<?> getBillByOrderId(String orderId);
+    ResponseEntity<?> getBillById(String id);
 
     ResponseEntity<?> createBill(BillCreateDto billCreateDto);
 

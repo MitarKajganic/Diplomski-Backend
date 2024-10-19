@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class MenuCreateDto {
@@ -16,6 +17,6 @@ public class MenuCreateDto {
 
 //    @NotNull(message = "Items cannot be null")
 //    @Size(min = 1, message = "Items must contain at least one item")
-    private List<String> itemIds;
+    private Set<String> itemIds;
 
 }

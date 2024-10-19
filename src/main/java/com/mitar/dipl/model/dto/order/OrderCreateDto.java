@@ -1,13 +1,9 @@
 package com.mitar.dipl.model.dto.order;
 
-import com.mitar.dipl.model.entity.OrderItem;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.util.Set;
+import java.util.HashMap;
 
 @Data
 public class OrderCreateDto {
@@ -24,6 +20,6 @@ public class OrderCreateDto {
     @NotNull(message = "Items cannot be null")
     @NotEmpty(message = "Items must contain at least one item")
     @Size(min = 1, message = "Items must contain at least one item")
-    private Set<OrderItem> orderItems;
+    private HashMap<String, @Min(value = 1, message = "Quantity must be at least 1 for every given item")Integer> menuItemIdsAndQuantities; // {"id1": 2, "id2": 1}
 
 }

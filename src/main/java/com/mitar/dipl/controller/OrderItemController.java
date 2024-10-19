@@ -24,7 +24,7 @@ public class OrderItemController {
         return orderItemService.getOrderItemById(orderItemId);
     }
 
-    @GetMapping("/order/{menuItemId}")
+    @GetMapping("/menu-item/{menuItemId}")
     public ResponseEntity<?> getOrderItemsByMenuItemId(@PathVariable String menuItemId) {
         return orderItemService.getOrderItemsByMenuItemId(menuItemId);
     }

@@ -34,6 +34,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ResponseEntity<?> getAllMenus() {
+        logger.info("Fetching all menus.");
         return ResponseEntity.ok(menuRepository.findAll().stream()
                 .map(menuMapper::toDto)
                 .toList()
@@ -42,13 +43,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ResponseEntity<?> getMenuById(String menuId) {
-        UUID parsedMenuId;
-        try {
-            parsedMenuId = UUID.fromString(menuId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for Menu ID: {}", menuId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
-        }
+        UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
 
         Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
         if (menuOpt.isEmpty()) {
@@ -78,13 +73,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ResponseEntity<?> deleteMenu(String menuId) {
-        UUID parsedMenuId;
-        try {
-            parsedMenuId = UUID.fromString(menuId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for deletion: {}", menuId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
-        }
+        UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
 
         Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
         if (menuOpt.isEmpty()) {
@@ -104,13 +93,7 @@ public class MenuServiceImpl implements MenuService {
 
     @Override
     public ResponseEntity<?> updateMenu(String menuId, MenuCreateDto menuCreateDto) {
-        UUID parsedMenuId;
-        try {
-            parsedMenuId = UUID.fromString(menuId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for update: {}", menuId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Menu ID format.");
-        }
+        UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
 
         Optional<Menu> optionalMenu = menuRepository.findById(parsedMenuId);
         if (optionalMenu.isEmpty()) {
@@ -121,15 +104,9 @@ public class MenuServiceImpl implements MenuService {
 
         menu.setName(menuCreateDto.getName());
 
-        List<UUID> menuItemIds;
-        try {
-            menuItemIds = menuCreateDto.getItemIds().stream()
-                    .map(UUID::fromString)
-                    .collect(Collectors.toList());
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid MenuItem IDs in update: {}", menuCreateDto.getItemIds());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One or more MenuItem IDs are invalid UUIDs.");
-        }
+        List<UUID> menuItemIds = menuCreateDto.getItemIds().stream()
+                .map(UUIDUtils::parseUUID)
+                .toList();
 
         List<MenuItem> newMenuItems = menuItemRepository.findAllById(menuItemIds);
 
@@ -137,7 +114,6 @@ public class MenuServiceImpl implements MenuService {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("One or more MenuItem IDs do not exist.");
         }
 
-        // Determine MenuItems to remove and add
         Set<MenuItem> currentItems = new HashSet<>(menu.getItems());
         Set<MenuItem> itemsToRemove = new HashSet<>(currentItems);
         newMenuItems.forEach(itemsToRemove::remove);

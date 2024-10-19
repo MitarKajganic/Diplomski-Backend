@@ -9,6 +9,9 @@ import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.service.BillService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.java.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,25 +26,22 @@ public class BillServiceImpl implements BillService {
 
     private BillRepository billRepository;
 
-    private OrderRepository orderRepository;
-
     private BillMapper billMapper;
 
+    private static final Logger logger = LoggerFactory.getLogger(BillServiceImpl.class);
+
+
+    @Override
+    public ResponseEntity<?> getAll() {
+        logger.info("Fetching all bills.");
+        return ResponseEntity.ok(billRepository.findAll().stream()
+                .map(billMapper::toDto)
+                .toList());
+    }
 
     @Override
     public ResponseEntity<?> getBillById(String id) {
         Optional<Bill> bill = billRepository.findById(UUID.fromString(id));
-        if (bill.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(bill.get()));
-    }
-
-    @Override
-    public ResponseEntity<?> getBillByOrderId(String orderId) {
-        Optional<OrderEntity> order = orderRepository.findById(UUID.fromString(orderId));
-        if (order.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        Optional<Bill> bill = billRepository.findByOrderEntity(order.get());
         if (bill.isEmpty())
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         return ResponseEntity.status(HttpStatus.OK).body(billMapper.toDto(bill.get()));

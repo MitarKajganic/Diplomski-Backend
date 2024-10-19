@@ -21,7 +21,7 @@ public class TransactionMapper {
     public TransactionDto toDto(Transaction transaction) {
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setId(transaction.getId().toString());
-        transactionDto.setTransactionTime(transaction.getTransactionTime());
+        transactionDto.setTransactionTime(transaction.getCreatedAt());
         transactionDto.setAmount(transaction.getAmount());
         transactionDto.setType(transaction.getType().name());
         transactionDto.setBillId(transaction.getBill().getId().toString());

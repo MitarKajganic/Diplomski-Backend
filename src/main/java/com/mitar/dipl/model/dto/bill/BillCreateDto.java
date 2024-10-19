@@ -1,6 +1,7 @@
 package com.mitar.dipl.model.dto.bill;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 public class BillCreateDto {
 
     @NotNull(message = "Order ID cannot be null")
+    @NotEmpty(message = "Order ID cannot be empty")
     private String orderId;
 
     @NotNull(message = "Total amount cannot be null")

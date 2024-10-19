@@ -14,14 +14,14 @@ public class BillController {
 
     private final BillService billService;
 
+    @GetMapping
+    public ResponseEntity<?> getAllBills() {
+        return billService.getAll();
+    }
+
     @GetMapping("/{billId}")
     public ResponseEntity<?> getBillById(@PathVariable String billId) {
         return billService.getBillById(billId);
-    }
-
-    @GetMapping("/order/{orderId}")
-    public ResponseEntity<?> getBillByOrderId(@PathVariable String orderId) {
-        return billService.getBillByOrderId(orderId);
     }
 
     @PostMapping

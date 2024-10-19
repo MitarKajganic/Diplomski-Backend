@@ -31,6 +31,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ResponseEntity<?> getInventories() {
+        logger.info("Fetching all inventories.");
         return ResponseEntity.ok(inventoryRepository.findAll().stream()
                 .map(inventoryMapper::toDto)
                 .toList());
@@ -38,13 +39,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ResponseEntity<?> getInventoryById(String inventoryId) {
-        UUID parsedId;
-        try {
-            parsedId = UUID.fromString(inventoryId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for Inventory ID: {}", inventoryId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Inventory ID format.");
-        }
+        UUID parsedId = UUIDUtils.parseUUID(inventoryId);
 
         Optional<Inventory> inventoryOpt = inventoryRepository.findById(parsedId);
         if (inventoryOpt.isEmpty()) {
@@ -72,13 +67,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ResponseEntity<?> deleteInventory(String inventoryId) {
-        UUID parsedId;
-        try {
-            parsedId = UUID.fromString(inventoryId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for Inventory deletion: {}", inventoryId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Inventory ID format.");
-        }
+        UUID parsedId = UUIDUtils.parseUUID(inventoryId);
 
         Optional<Inventory> inventoryOpt = inventoryRepository.findById(parsedId);
         if (inventoryOpt.isEmpty()) {
@@ -91,13 +80,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public ResponseEntity<?> updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto) {
-        UUID parsedId;
-        try {
-            parsedId = UUID.fromString(inventoryId);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Invalid UUID format for Inventory update: {}", inventoryId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Inventory ID format.");
-        }
+        UUID parsedId = UUIDUtils.parseUUID(inventoryId);
 
         Optional<Inventory> optionalInventory = inventoryRepository.findById(parsedId);
         if (optionalInventory.isEmpty()) {

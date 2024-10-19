@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -129,6 +130,20 @@ public class GlobalExceptionHandler {
                 errorMessage
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    // Handle InvalidUUIDException
+    @ExceptionHandler(InvalidUUIDException.class)
+    public ResponseEntity<ApiError> handleInvalidUUIDException(InvalidUUIDException ex, WebRequest request) {
+        logger.warn("Invalid UUID exception: {}", ex.getMessage());
+
+        ApiError apiError = new ApiError(
+                HttpStatus.BAD_REQUEST,
+                "Invalid UUID",
+                List.of(ex.getMessage())
+        );
+
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     // Handle generic exceptions
