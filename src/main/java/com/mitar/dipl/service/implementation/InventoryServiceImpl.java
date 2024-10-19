@@ -43,6 +43,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         Optional<Inventory> inventoryOpt = inventoryRepository.findById(parsedId);
         if (inventoryOpt.isEmpty()) {
+            logger.warn("Inventory not found.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Inventory not found.");
         }
 

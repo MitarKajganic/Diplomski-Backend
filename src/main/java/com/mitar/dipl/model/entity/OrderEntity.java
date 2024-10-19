@@ -20,8 +20,8 @@ import java.util.UUID;
 @Table(name = "orders")
 @Getter
 @Setter
-@ToString(exclude = {"user", "orderItems"})
-@EqualsAndHashCode(exclude = {"user", "orderItems"})
+@ToString(exclude = {"user", "orderItems", "bill"})
+@EqualsAndHashCode(exclude = {"user", "orderItems", "bill"})
 public class OrderEntity {
 
     @Id
@@ -36,12 +36,12 @@ public class OrderEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status; // e.g., PENDING, COMPLETED, CANCELLED
+    private Status status;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    private User user; // The customer who placed the order
+    private User user;
 
     @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -51,7 +51,6 @@ public class OrderEntity {
     @JoinColumn(name = "bill_id", referencedColumnName = "id")
     private Bill bill;
 
-    // Helper methods to manage bidirectional relationships
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrderEntity(this);
@@ -60,6 +59,13 @@ public class OrderEntity {
     public void removeOrderItem(OrderItem orderItem) {
         orderItems.remove(orderItem);
         orderItem.setOrderEntity(null);
+    }
+
+    public void setBill(Bill bill) {
+        this.bill = bill;
+        if (bill != null && bill.getOrderEntity() != this) {
+            bill.setOrderEntity(this);
+        }
     }
 
 }

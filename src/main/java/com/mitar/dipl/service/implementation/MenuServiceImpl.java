@@ -47,6 +47,7 @@ public class MenuServiceImpl implements MenuService {
 
         Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
         if (menuOpt.isEmpty()) {
+            logger.warn("Menu not found with ID: {}", menuId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
         }
 

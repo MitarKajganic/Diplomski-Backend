@@ -69,6 +69,7 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedId);
         if (menuItemOpt.isEmpty()) {
+            logger.warn("MenuItem not found.");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
         }
         return ResponseEntity.ok(menuItemMapper.toDto(menuItemOpt.get()));

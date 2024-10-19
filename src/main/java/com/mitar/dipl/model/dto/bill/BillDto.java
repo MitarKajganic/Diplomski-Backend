@@ -12,7 +12,6 @@ public class BillDto {
     private String orderId;
     private BigDecimal totalAmount;
     private BigDecimal tax;
-    private BigDecimal discount;
     private BigDecimal finalAmount;
     private LocalDateTime createdAt;
 

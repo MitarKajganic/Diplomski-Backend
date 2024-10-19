@@ -52,8 +52,10 @@ public class OrderItemServiceImpl implements OrderItemService {
         UUID parsedOrderItemId = UUID.fromString(orderItemId);
 
         Optional<OrderItem> orderItem = orderItemRepository.findById(parsedOrderItemId);
-        if (orderItem.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        if (orderItem.isEmpty()) {
+            logger.warn("OrderItem not found with ID: {}", orderItemId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found.");
+        }
         return ResponseEntity.status(HttpStatus.OK).body(orderItemMapper.toDto(orderItem.get()));
     }
 

@@ -15,16 +15,4 @@ public class BillCreateDto {
     @NotEmpty(message = "Order ID cannot be empty")
     private String orderId;
 
-    @NotNull(message = "Total amount cannot be null")
-    @DecimalMin(value = "0.0", inclusive = false, message = "Total amount must be greater than zero")
-    private BigDecimal totalAmount;
-
-    @NotNull(message = "Tax cannot be null")
-    @DecimalMin(value = "0.0", message = "Tax cannot be negative")
-    private BigDecimal tax;
-
-    @NotNull(message = "Discount cannot be null")
-    @DecimalMin(value = "0.0", message = "Discount cannot be negative")
-    private BigDecimal discount;
-
 }

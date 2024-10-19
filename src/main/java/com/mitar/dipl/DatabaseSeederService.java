@@ -77,7 +77,7 @@ public class DatabaseSeederService {
         createOrderItemIfNotFound(order1, burger, 1, burger.getPrice());
 
         // Bill and Transaction for Order 1
-        Bill bill1 = createBillIfNotFound(order1, new BigDecimal("9.99"), new BigDecimal("0.99"), new BigDecimal("1.00"));
+        Bill bill1 = createBillIfNotFound(order1, new BigDecimal("9.99"));
         verifyBillAndCreateTransaction(bill1, order1);
 
         // Order 2: COMPLETED, Pasta x2, Salad x1
@@ -87,7 +87,7 @@ public class DatabaseSeederService {
 
         // Bill and Transaction for Order 2
         BigDecimal totalOrder2 = pasta.getPrice().multiply(BigDecimal.valueOf(2)).add(salad.getPrice());
-        Bill bill2 = createBillIfNotFound(order2, totalOrder2, new BigDecimal("1.20"), new BigDecimal("2.00"));
+        Bill bill2 = createBillIfNotFound(order2, totalOrder2);
         verifyBillAndCreateTransaction(bill2, order2);
 
         // Order 3: CANCELLED, Steak x1
@@ -95,7 +95,7 @@ public class DatabaseSeederService {
         createOrderItemIfNotFound(order3, steak, 1, steak.getPrice());
 
         // Bill and Transaction for Order 3
-        Bill bill3 = createBillIfNotFound(order3, steak.getPrice(), new BigDecimal("1.90"), new BigDecimal("3.00"));
+        Bill bill3 = createBillIfNotFound(order3, steak.getPrice());
         verifyBillAndCreateTransaction(bill3, order3);
 
         // Order 4: COMPLETED, Ice Cream x2, Fries x1, Chicken Burger x1
@@ -108,7 +108,7 @@ public class DatabaseSeederService {
         BigDecimal totalOrder4 = iceCream.getPrice().multiply(BigDecimal.valueOf(2))
                 .add(fries.getPrice())
                 .add(chickenBurger.getPrice());
-        Bill bill4 = createBillIfNotFound(order4, totalOrder4, new BigDecimal("0.60"), new BigDecimal("0.50"));
+        Bill bill4 = createBillIfNotFound(order4, totalOrder4);
         verifyBillAndCreateTransaction(bill4, order4);
 
         // Order 5: PENDING, Tomato Soup x1, Grilled Fish x1
@@ -118,7 +118,7 @@ public class DatabaseSeederService {
 
         // Bill and Transaction for Order 5
         BigDecimal totalOrder5 = tomatoSoup.getPrice().add(grilledFish.getPrice());
-        Bill bill5 = createBillIfNotFound(order5, totalOrder5, new BigDecimal("0.50"), new BigDecimal("1.50"));
+        Bill bill5 = createBillIfNotFound(order5, totalOrder5);
         verifyBillAndCreateTransaction(bill5, order5);
 
         log.info("Database seeding completed successfully with multiple orders and order items.");
@@ -296,7 +296,7 @@ public class DatabaseSeederService {
         return orderItem;
     }
 
-    private Bill createBillIfNotFound(OrderEntity order, BigDecimal totalAmount, BigDecimal tax, BigDecimal discount) {
+    private Bill createBillIfNotFound(OrderEntity order, BigDecimal totalAmount) {
         if (order.getBill() != null) {
             log.info("Bill already exists for order ID: {}", order.getId());
             return order.getBill();
@@ -304,8 +304,6 @@ public class DatabaseSeederService {
 
         Bill bill = new Bill();
         bill.setTotalAmount(totalAmount);
-        bill.setTax(tax);
-        bill.setDiscount(discount);
         bill.calculateFinalAmount();
 
         billRepository.save(bill);

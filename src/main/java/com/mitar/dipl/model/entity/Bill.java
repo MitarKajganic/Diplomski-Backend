@@ -18,8 +18,8 @@ import java.util.UUID;
 @Table(name = "bills")
 @Getter
 @Setter
-@ToString(exclude = {})
-@EqualsAndHashCode(exclude = {})
+@ToString(exclude = {"orderEntity"})
+@EqualsAndHashCode(exclude = {"orderEntity"})
 public class Bill {
 
     @Id
@@ -32,10 +32,7 @@ public class Bill {
     private BigDecimal totalAmount;
 
     @Column(nullable = false)
-    private BigDecimal tax;
-
-    @Column(nullable = false)
-    private BigDecimal discount;
+    private BigDecimal tax = new BigDecimal("0.2");
 
     private BigDecimal finalAmount;
 
@@ -43,9 +40,13 @@ public class Bill {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @OneToOne(mappedBy = "bill", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private OrderEntity orderEntity;
+
     @PrePersist
     public void calculateFinalAmount() {
-        this.finalAmount = this.totalAmount.add(this.tax).subtract(this.discount);
+        this.finalAmount = this.totalAmount.multiply(this.tax.add(BigDecimal.ONE));
     }
 }
 
