@@ -78,7 +78,7 @@ public class DatabaseSeederService {
 
         // Bill and Transaction for Order 1
         Bill bill1 = createBillIfNotFound(order1, new BigDecimal("9.99"));
-        verifyBillAndCreateTransaction(bill1, order1);
+        verifyBillAndCreateTransaction(bill1, order1, Method.CASH); // Set method here
 
         // Order 2: COMPLETED, Pasta x2, Salad x1
         OrderEntity order2 = createOrderIfNotFound(customer, Status.COMPLETED);
@@ -88,7 +88,7 @@ public class DatabaseSeederService {
         // Bill and Transaction for Order 2
         BigDecimal totalOrder2 = pasta.getPrice().multiply(BigDecimal.valueOf(2)).add(salad.getPrice());
         Bill bill2 = createBillIfNotFound(order2, totalOrder2);
-        verifyBillAndCreateTransaction(bill2, order2);
+        verifyBillAndCreateTransaction(bill2, order2, Method.CARD); // Set method here
 
         // Order 3: CANCELLED, Steak x1
         OrderEntity order3 = createOrderIfNotFound(customer, Status.CANCELLED);
@@ -96,7 +96,7 @@ public class DatabaseSeederService {
 
         // Bill and Transaction for Order 3
         Bill bill3 = createBillIfNotFound(order3, steak.getPrice());
-        verifyBillAndCreateTransaction(bill3, order3);
+        verifyBillAndCreateTransaction(bill3, order3, Method.CASH); // Set method here
 
         // Order 4: COMPLETED, Ice Cream x2, Fries x1, Chicken Burger x1
         OrderEntity order4 = createOrderIfNotFound(customer, Status.COMPLETED);
@@ -109,7 +109,7 @@ public class DatabaseSeederService {
                 .add(fries.getPrice())
                 .add(chickenBurger.getPrice());
         Bill bill4 = createBillIfNotFound(order4, totalOrder4);
-        verifyBillAndCreateTransaction(bill4, order4);
+        verifyBillAndCreateTransaction(bill4, order4, Method.CARD); // Set method here
 
         // Order 5: PENDING, Tomato Soup x1, Grilled Fish x1
         OrderEntity order5 = createOrderIfNotFound(customer, Status.PENDING);
@@ -119,7 +119,7 @@ public class DatabaseSeederService {
         // Bill and Transaction for Order 5
         BigDecimal totalOrder5 = tomatoSoup.getPrice().add(grilledFish.getPrice());
         Bill bill5 = createBillIfNotFound(order5, totalOrder5);
-        verifyBillAndCreateTransaction(bill5, order5);
+        verifyBillAndCreateTransaction(bill5, order5, Method.CASH); // Set method here
 
         log.info("Database seeding completed successfully with multiple orders and order items.");
     }
@@ -324,12 +324,16 @@ public class DatabaseSeederService {
         return bill;
     }
 
-    private Transaction createTransactionIfNotFound(Bill bill, BigDecimal amount, Type type) {
-        if (bill.getId() == null) {
-            log.error("Cannot create Transaction: Bill ID is null for Bill associated with order ID");
-            throw new IllegalStateException("Cannot create Transaction: Bill is not persisted.");
-        }
-
+    /**
+     * Creates a transaction if it does not already exist.
+     *
+     * @param bill    The associated Bill entity.
+     * @param amount  The amount for the transaction.
+     * @param type    The type of the transaction.
+     * @param method  The payment method for the transaction.
+     * @return The created or existing Transaction entity.
+     */
+    private Transaction createTransactionIfNotFound(Bill bill, BigDecimal amount, Type type, Method method) {
         Optional<Transaction> transactionOpt = transactionRepository.findByBillAndType(bill, type);
         if (transactionOpt.isPresent()) {
             log.info("Transaction already exists for bill ID: {} with type: {}", bill.getId(), type);
@@ -340,25 +344,27 @@ public class DatabaseSeederService {
         transaction.setBill(bill);
         transaction.setAmount(amount);
         transaction.setType(type);
+        transaction.setMethod(method); // Set the method here
 
         transactionRepository.save(transaction);
-        log.info("Created transaction of type: {} for bill ID: {}", type, bill.getId());
+        log.info("Created transaction of type: {} with method: {} for bill ID: {}", type, method, bill.getId());
         return transaction;
     }
 
     /**
      * Verifies that the bill has been persisted and creates a transaction.
      *
-     * @param bill   The Bill entity to verify and create a transaction for.
-     * @param order  The associated OrderEntity.
+     * @param bill    The Bill entity to verify and create a transaction for.
+     * @param order   The associated OrderEntity.
+     * @param method  The payment method to be used for the transaction.
      */
-    private void verifyBillAndCreateTransaction(Bill bill, OrderEntity order) {
+    private void verifyBillAndCreateTransaction(Bill bill, OrderEntity order, Method method) {
         if (bill.getId() == null) {
             log.error("Bill was not persisted correctly for order ID: {}", order.getId());
             throw new IllegalStateException("Bill was not persisted correctly.");
         }
 
-        createTransactionIfNotFound(bill, bill.getFinalAmount(), Type.PAYMENT);
+        createTransactionIfNotFound(bill, bill.getFinalAmount(), Type.PAYMENT, method);
     }
 
 }

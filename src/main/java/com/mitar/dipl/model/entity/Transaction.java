@@ -2,6 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mitar.dipl.model.entity.enums.Method;
 import com.mitar.dipl.model.entity.enums.Type;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -34,14 +35,19 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Type type; // e.g., PAYMENT, REFUND
+    private Type type;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Method method;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bill_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @JsonBackReference
     private Bill bill;
+
 }

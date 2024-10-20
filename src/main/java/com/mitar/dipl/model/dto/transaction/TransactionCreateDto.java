@@ -22,4 +22,7 @@ public class TransactionCreateDto {
     @NotEmpty(message = "Bill ID cannot be empty")
     private String billId;
 
+    @NotNull(message = "Method cannot be null")
+    @Pattern(regexp = "CASH|CARD", message = "Method must be either CASH or CARD")
+    private String method;
 }

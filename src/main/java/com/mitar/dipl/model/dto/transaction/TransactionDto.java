@@ -12,6 +12,7 @@ public class TransactionDto {
     private LocalDateTime transactionTime;
     private BigDecimal amount;
     private String type;
+    private String method;
     private String billId;
 
 }
