@@ -2,6 +2,7 @@ package com.mitar.dipl.controller;
 
 import com.mitar.dipl.model.dto.user.UserCreateDto;
 import com.mitar.dipl.service.UserService;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<?> getUserByEmail(@PathVariable @Email String email) {
         return userService.getUserByEmail(email);
     }
 
@@ -34,21 +35,14 @@ public class UserController {
         return userService.createUser(userCreateDto);
     }
 
-    @PostMapping("/createStaff")
-    public ResponseEntity<?> createStaff(@RequestBody @Validated UserCreateDto userCreateDto) {
-        return userService.createStaff(userCreateDto);
-    }
-
-    @PostMapping("/createAdmin")
-    public ResponseEntity<?> createAdmin(@RequestBody @Validated UserCreateDto userCreateDto) {
-        return userService.createAdmin(userCreateDto);
-    }
-
-    //login
-
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable String userId) {
         return userService.deleteUser(userId);
+    }
+
+    @PutMapping("/disable/{userId}")
+    public ResponseEntity<?> disableUser(@PathVariable String userId) {
+        return userService.disableUser(userId);
     }
 
     @PutMapping("/update/{userId}")
@@ -56,8 +50,4 @@ public class UserController {
         return userService.updateUser(userId, userCreateDto);
     }
 
-    @PutMapping("/disable/{userId}")
-    public ResponseEntity<?> disableUser(@PathVariable String userId) {
-        return userService.disableUser(userId);
-    }
 }

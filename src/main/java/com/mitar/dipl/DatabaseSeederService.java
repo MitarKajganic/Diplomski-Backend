@@ -18,6 +18,7 @@ import java.util.Optional;
 public class DatabaseSeederService {
 
     private final UserRepository userRepository;
+    private final StaffRepository staffRepository;
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
     private final TableRepository tableRepository;
@@ -27,7 +28,6 @@ public class DatabaseSeederService {
     private final BillRepository billRepository;
     private final TransactionRepository transactionRepository;
     private final InventoryRepository inventoryRepository;
-    private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -39,7 +39,8 @@ public class DatabaseSeederService {
         User admin = createUserIfNotFound("admin@admin.com", "password", Role.SUPER_ADMIN);
 
         // Seed Staff
-        createStaffIfNotFound(admin, "John", "Doe", Position.MANAGER, "123456789");
+        Staff staff1 = createStaffIfNotFound("manager@staff.com", "password", "John", "Doe", Position.MANAGER, "123-456-7890");
+        Staff staff2 = createStaffIfNotFound("waiter@staff.com", "password", "Jane", "Smith", Position.WAITER, "098-765-4321");
 
         // Seed Inventory Items
         Inventory beefInventory = createInventoryIfNotFound("Beef", 10, "kg", false);
@@ -136,7 +137,7 @@ public class DatabaseSeederService {
 
         User user = new User();
         user.setEmail(email);
-        user.setHashPassword(passwordEncoder.encode(rawPassword));
+        user.setHashPassword(rawPassword); // setHashPassword handles encoding
         user.setRole(role);
         user.setActive(true);
         userRepository.save(user);
@@ -144,19 +145,22 @@ public class DatabaseSeederService {
         return user;
     }
 
-    private Staff createStaffIfNotFound(User user, String name, String surname, Position position, String contactInfo) {
-        Optional<Staff> staffOpt = staffRepository.findByUser(user);
+    private Staff createStaffIfNotFound(String email, String rawPassword, String name, String surname, Position position, String contactInfo) {
+        Optional<Staff> staffOpt = staffRepository.findByEmail(email);
         if (staffOpt.isPresent()) {
-            log.info("Staff already exists for user: {}", user.getEmail());
+            log.info("Staff already exists: {}", email);
             return staffOpt.get();
         }
 
         Staff staff = new Staff();
+        staff.setEmail(email);
+        staff.setHashPassword(rawPassword); // setHashPassword handles encoding
+        staff.setRole(Role.STAFF);
+        staff.setActive(true);
         staff.setName(name);
         staff.setSurname(surname);
         staff.setPosition(position);
         staff.setContactInfo(contactInfo);
-        staff.setUser(user);
 
         staffRepository.save(staff);
         log.info("Created staff: {} {}", name, surname);
@@ -263,12 +267,8 @@ public class DatabaseSeederService {
     }
 
     private OrderEntity createOrderIfNotFound(User user, Status status) {
-        Optional<OrderEntity> orderOpt = orderRepository.findByUserAndStatus(user, status);
-        if (orderOpt.isPresent()) {
-            log.info("Order already exists for user: {} with status: {}", user.getEmail(), status);
-            return orderOpt.get();
-        }
-
+        // It's possible to have multiple orders with the same status for a user
+        // So, always create a new order without checking
         OrderEntity order = new OrderEntity();
         order.setUser(user);
         order.setStatus(status);
@@ -279,12 +279,7 @@ public class DatabaseSeederService {
     }
 
     private OrderItem createOrderItemIfNotFound(OrderEntity order, MenuItem menuItem, int quantity, BigDecimal price) {
-        Optional<OrderItem> orderItemOpt = orderItemRepository.findByOrderEntityAndMenuItem(order, menuItem);
-        if (orderItemOpt.isPresent()) {
-            log.info("OrderItem already exists: {} x{} for order ID: {}", menuItem.getName(), quantity, order.getId());
-            return orderItemOpt.get();
-        }
-
+        // Similarly, allow multiple order items for the same menu item in an order
         OrderItem orderItem = new OrderItem();
         orderItem.setOrderEntity(order);
         orderItem.setMenuItem(menuItem);
@@ -304,7 +299,7 @@ public class DatabaseSeederService {
 
         Bill bill = new Bill();
         bill.setTotalAmount(totalAmount);
-        bill.calculateFinalAmount();
+        bill.calculateFinalAmount(); // Assuming this method sets the final amount based on totalAmount
 
         billRepository.save(bill);
 
@@ -313,7 +308,6 @@ public class DatabaseSeederService {
 
         // Save the OrderEntity, which cascades to Bill due to CascadeType.ALL
         orderRepository.save(order);
-
 
         if (bill.getId() == null) {
             log.error("Bill was not persisted correctly for order ID: {}", order.getId());
@@ -366,5 +360,4 @@ public class DatabaseSeederService {
 
         createTransactionIfNotFound(bill, bill.getFinalAmount(), Type.PAYMENT, method);
     }
-
 }

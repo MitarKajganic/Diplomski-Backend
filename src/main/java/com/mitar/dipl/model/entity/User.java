@@ -13,6 +13,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 public class User implements UserDetails {
 
@@ -23,14 +24,14 @@ public class User implements UserDetails {
     private UUID id;
 
     @Column(nullable = false)
-    private String password; // Ensure passwords are hashed
+    private String password;
 
     @Column(nullable = false, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Role role; // ADMIN, STAFF, CUSTOMER
+    private Role role;
 
     @Column(nullable = false)
     private Boolean active;
@@ -38,9 +39,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private Set<Reservation> reservations = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private Staff staff;
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
+//    private Staff staff;
 
     public void setHashPassword(String plainTextPassword) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(9);

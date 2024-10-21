@@ -13,10 +13,6 @@ public interface UserService {
 
     ResponseEntity<?> createUser(UserCreateDto userCreateDto);
 
-    ResponseEntity<?> createStaff(UserCreateDto userCreateDto);
-
-    ResponseEntity<?> createAdmin(UserCreateDto userCreateDto);
-
     ResponseEntity<?> deleteUser(String userId);
 
     ResponseEntity<?> disableUser(String userId);

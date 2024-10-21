@@ -30,7 +30,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private TransactionMapper transactionMapper;
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionServiceImpl.class);
 
 
     @Override

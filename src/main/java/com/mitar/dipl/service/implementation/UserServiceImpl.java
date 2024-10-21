@@ -8,6 +8,8 @@ import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -25,75 +27,88 @@ public class UserServiceImpl implements UserService {
 
     private UserMapper userMapper;
 
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
+
 
     @Override
     public ResponseEntity<?> getAllUsers() {
-        return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll());
+        logger.info("Fetching all users.");
+        return ResponseEntity.status(HttpStatus.OK).body(userRepository.findAll().stream()
+                .map(userMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getUserById(String userId) {
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
-        if (user.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(user.get());
+        UUID userUuid = UUIDUtils.parseUUID(userId);
+        Optional<User> user = userRepository.findById(userUuid);
+        if (user.isEmpty()) {
+            logger.warn("User not found with ID: {}", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userMapper.toDto(user.get()));
     }
 
     @Override
     public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        return ResponseEntity.status(HttpStatus.OK).body(user.get());
+        if (user.isEmpty()) {
+            logger.warn("User not found with email: {}", email);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(userMapper.toDto(user.get()));
     }
 
     @Override
     public ResponseEntity<?> createUser(UserCreateDto userCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(userMapper.toEntity(userCreateDto)));
-    }
-
-    @Override
-    public ResponseEntity<?> createStaff(UserCreateDto userCreateDto) {
-        User user = userMapper.toEntity(userCreateDto);
-        user.setRole(Role.STAFF);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
-    }
-
-    @Override
-    public ResponseEntity<?> createAdmin(UserCreateDto userCreateDto) {
-        User user = userMapper.toEntity(userCreateDto);
-        user.setRole(Role.ADMIN);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
+        return ResponseEntity.status(HttpStatus.CREATED).body(userMapper.toDto(userRepository.save(userMapper.toEntity(userCreateDto))));
     }
 
     @Override
     public ResponseEntity<?> deleteUser(String userId) {
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
-        if (user.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        UUID userUuid = UUIDUtils.parseUUID(userId);
+        Optional<User> user = userRepository.findById(userUuid);
+        if (user.isEmpty()) {
+            logger.warn("User not found with ID: {}", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
         userRepository.delete(user.get());
-        return ResponseEntity.status(HttpStatus.OK).body(null);
+        return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully.");
     }
 
     @Override
     public ResponseEntity<?> disableUser(String userId) {
-        Optional<User> user = userRepository.findById(UUID.fromString(userId));
-        if (user.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        UUID userUuid = UUIDUtils.parseUUID(userId);
+        Optional<User> user = userRepository.findById(userUuid);
+        if (user.isEmpty()) {
+            logger.warn("User not found with ID: {}", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
         user.get().setActive(false);
-        return ResponseEntity.status(HttpStatus.OK).body(userRepository.save(user.get()));
+        return ResponseEntity.status(HttpStatus.OK).body(userMapper.toDto(userRepository.save(user.get())));
     }
 
     @Override
     public ResponseEntity<?> updateUser(String userId, UserCreateDto userCreateDto) {
-        Optional<User> optionalUser = userRepository.findById(UUID.fromString(userId));
-        if (optionalUser.isEmpty())
+        UUID userUuid = UUIDUtils.parseUUID(userId);
+        Optional<User> optionalUser = userRepository.findById(userUuid);
+        if (optionalUser.isEmpty()) {
+            logger.warn("User not found with ID: {}", userId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
         User existingUser = optionalUser.get();
+
+        User byEmail = userRepository.findByEmail(userCreateDto.getEmail()).orElse(null);
+        if (byEmail != null && !byEmail.getId().equals(existingUser.getId())) {
+            logger.warn("User with email {} already exists.", userCreateDto.getEmail());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User with email already exists.");
+        }
 
         existingUser.setEmail(userCreateDto.getEmail());
         existingUser.setHashPassword(userCreateDto.getPassword());
 
-        return ResponseEntity.status(HttpStatus.OK).body(userRepository.save(existingUser));
+        return ResponseEntity.status(HttpStatus.OK).body(userMapper.toDto(userRepository.save(existingUser)));
     }
 }

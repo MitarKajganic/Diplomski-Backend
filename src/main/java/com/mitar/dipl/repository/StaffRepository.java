@@ -13,9 +13,8 @@ import java.util.UUID;
 @Repository
 public interface StaffRepository extends JpaRepository<Staff, UUID> {
 
-    Optional<Staff> findByUser_Id(UUID userId);
+    Optional<Staff> findByEmail(String email);
 
     List<Staff> findAllByPosition(Position position);
 
-    Optional<Staff> findByUser(User user);
 }

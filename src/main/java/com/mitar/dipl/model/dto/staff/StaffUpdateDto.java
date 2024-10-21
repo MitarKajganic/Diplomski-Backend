@@ -1,11 +1,13 @@
 package com.mitar.dipl.model.dto.staff;
 
-import com.mitar.dipl.model.dto.user.UserCreateDto;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class StaffCreateDto extends UserCreateDto {
+public class StaffUpdateDto {
 
     @NotEmpty(message = "Name cannot be empty")
     @NotNull(message = "Name cannot be null")

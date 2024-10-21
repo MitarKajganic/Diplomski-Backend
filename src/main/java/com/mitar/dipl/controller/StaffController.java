@@ -2,6 +2,7 @@ package com.mitar.dipl.controller;
 
 
 import com.mitar.dipl.model.dto.staff.StaffCreateDto;
+import com.mitar.dipl.model.dto.staff.StaffUpdateDto;
 import com.mitar.dipl.service.StaffService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,11 +27,6 @@ public class StaffController {
         return staffService.getStaffById(staffId);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getStaffByUserId(@PathVariable String userId) {
-        return staffService.getStaffByUserId(userId);
-    }
-
     @GetMapping("/position/{position}")
     public ResponseEntity<?> getStaffByPosition(@PathVariable String position) {
         if (!position.equals("WAITER") && !position.equals("COOK") && !position.equals("BARTENDER") && !position.equals("MANAGER"))
@@ -49,7 +45,7 @@ public class StaffController {
     }
 
     @PutMapping("/update/{staffId}")
-    public ResponseEntity<?> updateStaff(@PathVariable String staffId, @RequestBody @Validated StaffCreateDto staffCreateDto) {
+    public ResponseEntity<?> updateStaff(@PathVariable String staffId, @RequestBody @Validated StaffUpdateDto staffCreateDto) {
         return staffService.updateStaff(staffId, staffCreateDto);
     }
 
