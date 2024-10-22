@@ -43,39 +43,32 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, DispatcherServlet dispatcherServlet) throws Exception {
         http
-                // Enable CORS using the CorsConfigurationSource bean defined in CorsConfig
                 .cors(Customizer.withDefaults())
 
-                // Disable CSRF as we are using JWT
                 .csrf(AbstractHttpConfigurer::disable)
 
-                // Set session management to stateless
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Set unauthorized requests exception handler
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
 
-                // Set permissions on endpoints
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()// Allow access to authentication endpoints
-                        .requestMatchers("/users/create").permitAll() // Allow access to user endpoints
-                        .anyRequest().authenticated() // Require authentication for all other endpoints
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/users/create").permitAll()
+                        .anyRequest().authenticated()
                 )
 
-                // OAuth2 Login Configuration
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/api/auth/login") // Custom login page (optional)
+                        .loginPage("/api/auth/login")
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // Injected CustomOAuth2UserService
+                                .userService(customOAuth2UserService)
                         )
-                        .successHandler(oAuth2AuthenticationSuccessHandler) // Injected success handler
-                        .failureHandler(oAuth2AuthenticationFailureHandler) // Injected failure handler
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
 
-                // Add JWT token filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

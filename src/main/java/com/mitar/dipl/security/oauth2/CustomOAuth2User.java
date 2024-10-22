@@ -10,7 +10,6 @@ import java.util.Map;
 
 public class CustomOAuth2User implements OAuth2User {
 
-    // Additional getter methods to access User entity properties if needed
     @Getter
     private final User user;
     private final Map<String, Object> attributes;
@@ -19,8 +18,6 @@ public class CustomOAuth2User implements OAuth2User {
         this.user = user;
         this.attributes = attributes;
     }
-
-    // Implement necessary methods
 
     @Override
     public Map<String, Object> getAttributes() {

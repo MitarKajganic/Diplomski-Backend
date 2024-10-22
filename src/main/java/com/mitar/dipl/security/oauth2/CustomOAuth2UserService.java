@@ -26,21 +26,18 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
 
-        // Extract user attributes
         String registrationId = userRequest.getClientRegistration().getRegistrationId(); // "google"
         String userNameAttributeName = userRequest.getClientRegistration()
                 .getProviderDetails()
                 .getUserInfoEndpoint()
                 .getUserNameAttributeName(); // "sub"
 
-        // Fetch user information
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
 
         logger.info("OAuth2 login successful for user: {}", email);
 
-        // Find or create user in the database
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> registerNewUser(email, name, picture));
 
@@ -53,7 +50,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 //        user.setName(name);
 //        user.setPicture(picture);
 //        user.setProvider("google");
-        user.setRole(Role.CUSTOMER); // Assign default role
+        user.setRole(Role.CUSTOMER);
         user.setActive(true);
         // Hash a default password or handle appropriately
         user.setPassword("N/A"); // Not applicable for OAuth2 users

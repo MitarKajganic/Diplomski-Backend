@@ -29,16 +29,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
-        // Retrieve the custom OAuth2User
+
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
         User user = oAuth2User.getUser();
 
-        // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
         logger.info("JWT token generated for user: {}", user.getEmail());
 
-        // Return the token in the response body as JSON
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write("{\"token\": \"" + token + "\"}");
