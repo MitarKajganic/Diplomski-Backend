@@ -2,6 +2,10 @@ package com.mitar.dipl.controller;
 
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
 import com.mitar.dipl.service.ReservationService;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,17 +45,22 @@ public class ReservationController {
     }
 
     @GetMapping("/guest-name/{guestName}")
-    public ResponseEntity<?> getReservationsByGuestName(@PathVariable String guestName) {
+    public ResponseEntity<?> getReservationsByGuestName(@PathVariable
+                                                            @NotEmpty (message = "Guest name must not be empty.")
+                                                            @NotNull (message = "Guest name must not be null.")
+                                                            String guestName) {
         return reservationService.getReservationsByGuestName(guestName);
     }
 
     @GetMapping("/guest-email/{guestEmail}")
-    public ResponseEntity<?> getReservationsByGuestEmail(@PathVariable String guestEmail) {
+    public ResponseEntity<?> getReservationsByGuestEmail(@PathVariable @Email String guestEmail) {
         return reservationService.getReservationsByGuestEmail(guestEmail);
     }
 
     @GetMapping("/guest-phone/{guestPhone}")
-    public ResponseEntity<?> getReservationsByGuestPhone(@PathVariable String guestPhone) {
+    public ResponseEntity<?> getReservationsByGuestPhone(@PathVariable
+                                                             @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid guest phone number format.")
+                                                             String guestPhone) {
         return reservationService.getReservationsByGuestPhone(guestPhone);
     }
 

@@ -2,7 +2,7 @@ package com.mitar.dipl.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.UuidGenerator;
@@ -13,9 +13,12 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "reservations")
-@Data
+@Getter
+@Setter
 @SQLDelete(sql = "UPDATE reservations SET deleted = true WHERE id = ?")
 @Where(clause = "deleted = false")
+@ToString(exclude = {"table", "user"})
+@EqualsAndHashCode(exclude = {"table", "user"})
 public class Reservation {
 
     @Id

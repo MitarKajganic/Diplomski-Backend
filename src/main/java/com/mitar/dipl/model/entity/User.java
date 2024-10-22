@@ -3,7 +3,7 @@ package com.mitar.dipl.model.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mitar.dipl.model.entity.enums.Role;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +14,10 @@ import java.util.*;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-@Data
+@Getter
+@Setter
+@ToString(exclude = "reservations")
+@EqualsAndHashCode(exclude = "reservations")
 public class User implements UserDetails {
 
     @Id
@@ -38,10 +41,6 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private Set<Reservation> reservations = new HashSet<>();
-
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference
-//    private Staff staff;
 
     public void setHashPassword(String plainTextPassword) {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder(9);
@@ -76,6 +75,16 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+
+    public void addReservation(Reservation reservation) {
+        reservations.add(reservation);
+        reservation.setUser(this);
+    }
+
+    public void removeReservation(Reservation reservation) {
+        reservations.remove(reservation);
+        reservation.setUser(null);
     }
 
 }

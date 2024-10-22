@@ -1,4 +1,4 @@
-package com.mitar.dipl.exception;
+package com.mitar.dipl.exception.custom;
 
 public class InvalidUUIDException extends RuntimeException {
 

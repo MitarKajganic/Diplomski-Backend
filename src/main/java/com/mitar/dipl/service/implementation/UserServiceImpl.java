@@ -4,7 +4,9 @@ import com.mitar.dipl.mapper.UserMapper;
 import com.mitar.dipl.model.dto.user.UserCreateDto;
 import com.mitar.dipl.model.entity.User;
 import com.mitar.dipl.model.entity.enums.Role;
+import com.mitar.dipl.repository.ReservationRepository;
 import com.mitar.dipl.repository.UserRepository;
+import com.mitar.dipl.service.ReservationService;
 import com.mitar.dipl.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -24,6 +26,8 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private UserRepository userRepository;
+
+    private ReservationRepository reservationRepository;
 
     private UserMapper userMapper;
 
@@ -69,13 +73,21 @@ public class UserServiceImpl implements UserService {
     @Override
     public ResponseEntity<?> deleteUser(String userId) {
         UUID userUuid = UUIDUtils.parseUUID(userId);
-        Optional<User> user = userRepository.findById(userUuid);
-        if (user.isEmpty()) {
+        Optional<User> optionalUser = userRepository.findById(userUuid);
+        if (optionalUser.isEmpty()) {
             logger.warn("User not found with ID: {}", userId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         }
-        userRepository.delete(user.get());
-        return ResponseEntity.status(HttpStatus.OK).body("User deleted successfully.");
+
+        User user = optionalUser.get();
+        user.getReservations().forEach(reservation -> {
+            reservation.setUser(null);
+            reservation.setDeleted(true);
+            reservationRepository.save(reservation);
+        });
+
+        userRepository.delete(user);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("User deleted successfully.");
     }
 
     @Override

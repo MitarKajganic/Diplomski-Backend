@@ -2,6 +2,7 @@ package com.mitar.dipl.controller;
 
 import com.mitar.dipl.model.dto.table_entity.TableCreateDto;
 import com.mitar.dipl.service.TableService;
+import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +26,7 @@ public class TableController {
     }
 
     @GetMapping("/table-number/{tableNumber}")
-    public ResponseEntity<?> getTableByTableNumber(@PathVariable Integer tableNumber) {
+    public ResponseEntity<?> getTableByTableNumber(@PathVariable @Min(value = 1, message = "Table number must be greater than zero") Integer tableNumber) {
         return tableService.getTableByTableNumber(tableNumber);
     }
 

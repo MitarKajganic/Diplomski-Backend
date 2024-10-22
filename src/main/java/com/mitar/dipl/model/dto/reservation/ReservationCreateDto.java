@@ -6,6 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
+@ValidReservation
 public class ReservationCreateDto {
 
     @NotNull(message = "Table ID is required.")
@@ -20,13 +21,8 @@ public class ReservationCreateDto {
     @Min(value = 1, message = "There must be at least one guest.")
     private Integer numberOfGuests;
 
-    @NotNull(message = "User ID is required.")
-    @NotEmpty(message = "User ID cannot be empty.")
     private String userId;
 
-    @NotNull(message = "Guest name is required.")
-    @NotEmpty(message = "Guest name cannot be empty.")
-    @Size(min = 2, message = "Guest name must be at least 2 characters long.")
     private String guestName;
 
     @Email(message = "Invalid guest email format.")

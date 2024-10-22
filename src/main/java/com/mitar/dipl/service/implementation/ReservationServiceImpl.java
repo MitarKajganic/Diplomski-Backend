@@ -1,9 +1,16 @@
 package com.mitar.dipl.service.implementation;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
+import com.mitar.dipl.exception.custom.ConflictException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.ReservationMapper;
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
 import com.mitar.dipl.model.entity.Reservation;
+import com.mitar.dipl.model.entity.TableEntity;
+import com.mitar.dipl.model.entity.User;
 import com.mitar.dipl.repository.ReservationRepository;
+import com.mitar.dipl.repository.TableRepository;
+import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.ReservationService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -19,7 +26,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.regex.Pattern;
+
+import static com.mitar.dipl.service.implementation.UUIDUtils.parseUUID;
 
 @Service
 @AllArgsConstructor
@@ -27,6 +35,8 @@ import java.util.regex.Pattern;
 public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
+    private final UserRepository userRepository;
+    private final TableRepository tableRepository;
     private final ReservationMapper reservationMapper;
     private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
@@ -38,89 +48,133 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public ResponseEntity<?> getAllReservations() {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAll());
+        logger.info("Fetching all reservations.");
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAll().stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getAllIncludingDeleted() {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllIncludingDeleted());
+        logger.info("Fetching all reservations including deleted.");
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllIncludingDeleted().stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getReservationById(String reservationId) {
-        Optional<Reservation> reservation = reservationRepository.findById(UUID.fromString(reservationId));
-        if (reservation.isEmpty()) {
-            logger.warn("Reservation not found with ID: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationMapper.toDto(reservation.get()));
+        UUID reservationUUID = parseUUID(reservationId);
+        Reservation reservation = reservationRepository.findById(reservationUUID)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationMapper.toDto(reservation));
     }
 
     @Override
     public ResponseEntity<?> getReservationsByUserId(String userId) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByUser_Id(UUID.fromString(userId)));
+        UUID userUUID = parseUUID(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByUser_Id(userUUID).stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getReservationsByTableId(String tableId) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByTable_Id(UUID.fromString(tableId)));
+        UUID tableUUID = parseUUID(tableId);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByTable_Id(tableUUID).stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getReservationsByGuestName(String guestName) {
-        if (isNullOrEmpty(guestName)) {
-            logger.warn("Guest name is empty or null.");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Guest name cannot be empty.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestName(guestName));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestName(guestName).stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getReservationsByGuestEmail(String guestEmail) {
-        if (isNullOrEmpty(guestEmail) || isInvalidEmail(guestEmail)) {
-            logger.warn("Invalid guest email: {}", guestEmail);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Valid guest email is required.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestEmail(guestEmail));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestEmail(guestEmail).stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> getReservationsByGuestPhone(String guestPhone) {
-        if (isNullOrEmpty(guestPhone) || isInvalidPhone(guestPhone)) {
-            logger.warn("Invalid guest phone: {}", guestPhone);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Valid guest phone number is required.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestPhone(guestPhone));
+        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestPhone(guestPhone).stream()
+                .map(reservationMapper::toDto)
+                .toList()
+        );
     }
 
     @Override
     public ResponseEntity<?> createReservation(ReservationCreateDto reservationCreateDto) {
         logger.info("Attempting to create reservation with data: {}", reservationCreateDto);
 
-        Reservation reservation = reservationMapper.toEntity(reservationCreateDto);
+        String validation = validateReservationData(reservationCreateDto.getReservationTime());
 
-        String validationError = validateReservationData(reservation);
-        if (validationError != null) {
-            logger.warn("Validation failed: {}", validationError);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationError);
+        if (validation != null) {
+            throw new BadRequestException(validation);
         }
+
+        Reservation reservation = new Reservation();
+        reservation.setReservationTime(reservationCreateDto.getReservationTime());
+
+        UUID tableId = parseUUID(reservationCreateDto.getTableId());
+        TableEntity table = tableRepository.findById(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found."));
+
+        User user = null;
+        if (reservationCreateDto.getUserId() != null) {
+            UUID userId = parseUUID(reservationCreateDto.getUserId());
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+        }
+
+        if (reservationCreateDto.getNumberOfGuests() > table.getCapacity())
+            throw new BadRequestException("Number of guests exceeds table capacity.");
+
+        reservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
+
+        if (user != null) {
+            reservation.setUser(user);
+            reservation.setGuestPhone(null);
+            reservation.setGuestEmail(null);
+            reservation.setGuestName(null);
+        } else {
+            reservation.setUser(null);
+            reservation.setGuestPhone(reservationCreateDto.getGuestPhone());
+            reservation.setGuestEmail(reservationCreateDto.getGuestEmail());
+            reservation.setGuestName(reservationCreateDto.getGuestName());
+        }
+
+        reservation.setTable(table);
 
         if (isOverlappingReservation(reservation)) {
-            logger.warn("Table is already reserved at: {}", reservation.getReservationTime());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Table is already reserved at that time.");
+            throw new ConflictException("Table is already reserved at that time.");
         }
 
-        if (reservation.getUser() != null) {
+        if (user != null) {
             if (hasUserExistingReservation(reservation)) {
-                logger.warn("User already has a reservation at: {}", reservation.getReservationTime());
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already has a reservation at this time.");
+                throw new ConflictException("User already has a reservation at this time.");
             }
         } else {
             if (hasGuestExistingReservation(reservation)) {
-                logger.warn("Guest with email {} already has a reservation at: {}", reservation.getGuestEmail(), reservation.getReservationTime());
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Guest with this email already has a reservation at this time.");
+                throw new ConflictException("Guest with this email already has a reservation at this time.");
             }
         }
+
+        if (user != null) {
+            user.addReservation(reservation);
+        }
+        table.addReservation(reservation);
 
         Reservation savedReservation = reservationRepository.save(reservation);
         logger.info("Reservation created successfully: {}", savedReservation.getId());
@@ -128,62 +182,113 @@ public class ReservationServiceImpl implements ReservationService {
         return ResponseEntity.status(HttpStatus.CREATED).body(reservationMapper.toDto(savedReservation));
     }
 
+
     @Override
     public ResponseEntity<?> deleteReservation(String reservationId) {
-        Optional<Reservation> reservation = reservationRepository.findById(UUID.fromString(reservationId));
-        if (reservation.isEmpty()) {
-            logger.warn("Reservation not found with ID: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found.");
+        UUID uuid = parseUUID(reservationId);
+
+        Reservation reservation = reservationRepository.findById(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
+
+        if (reservation.getDeleted()) {
+            throw new BadRequestException("Reservation is already deleted.");
         }
-        reservationRepository.delete(reservation.get());
-        logger.info("Reservation deleted successfully: {}", reservationId);
-        return ResponseEntity.status(HttpStatus.OK).body("Reservation deleted successfully.");
+
+        reservation.setDeleted(true);
+
+        if (reservation.getUser() != null) {
+            reservation.getUser().removeReservation(reservation);
+        }
+        if (reservation.getTable() != null) {
+            reservation.getTable().removeReservation(reservation);
+        }
+
+        reservationRepository.save(reservation);
+        logger.info("Reservation soft-deleted successfully: {}", reservationId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Reservation deleted successfully.");
     }
 
     @Override
     public ResponseEntity<?> updateReservation(String reservationId, ReservationCreateDto reservationCreateDto) {
         logger.info("Attempting to update reservation with ID: {} using data: {}", reservationId, reservationCreateDto);
 
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(reservationId);
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid reservation ID format: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid reservation ID format.");
+        UUID uuid = parseUUID(reservationId);
+
+        Reservation existingReservation = reservationRepository.findById(uuid)
+                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
+
+        if (existingReservation.getDeleted())
+            throw new BadRequestException("Reservation is already deleted.");
+
+        String validation = validateReservationData(reservationCreateDto.getReservationTime());
+
+        if (validation != null) {
+            throw new BadRequestException(validation);
         }
 
-        Optional<Reservation> optionalReservation = reservationRepository.findById(uuid);
-        if (optionalReservation.isEmpty()) {
-            logger.warn("Reservation not found with ID: {}", reservationId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Reservation not found.");
-        }
-
-        Reservation existingReservation = optionalReservation.get();
-
-        reservationMapper.updateEntityFromDto(reservationCreateDto, existingReservation);
-
-        String validationError = validateReservationData(existingReservation);
-        if (validationError != null) {
-            logger.warn("Validation failed during update: {}", validationError);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationError);
-        }
-
-        if (isOverlappingReservation(existingReservation, uuid)) {
-            logger.warn("Table is already reserved at: {}", existingReservation.getReservationTime());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Table is already reserved at that time.");
-        }
-
-        if (existingReservation.getUser() != null) {
-            if (hasUserExistingReservation(existingReservation, uuid)) {
-                logger.warn("User already has a reservation at: {}", existingReservation.getReservationTime());
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already has a reservation at this time.");
-            }
-        } else {
-            if (hasGuestExistingReservation(existingReservation, uuid)) {
-                logger.warn("Guest with email {} already has a reservation at: {}", existingReservation.getGuestEmail(), existingReservation.getReservationTime());
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Guest with this email already has a reservation at this time.");
+        User newUser = null;
+        if (reservationCreateDto.getUserId() != null) {
+            UUID newUserId = parseUUID(reservationCreateDto.getUserId());
+            if (existingReservation.getUser() == null || !existingReservation.getUser().getId().equals(newUserId)) {
+                newUser = userRepository.findById(newUserId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found."));
             }
         }
+
+        TableEntity newTable = null;
+        if (reservationCreateDto.getTableId() != null) {
+            UUID newTableId = parseUUID(reservationCreateDto.getTableId());
+            if (!existingReservation.getTable().getId().equals(newTableId)) {
+                newTable = tableRepository.findById(newTableId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Table not found."));
+            }
+        }
+
+        Reservation tempReservation = new Reservation();
+        tempReservation.setReservationTime(reservationCreateDto.getReservationTime());
+        tempReservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
+
+        tempReservation.setId(existingReservation.getId());
+        tempReservation.setUser(newUser != null ? newUser : existingReservation.getUser());
+        tempReservation.setTable(newTable != null ? newTable : existingReservation.getTable());
+
+        if (tempReservation.getNumberOfGuests() > tempReservation.getTable().getCapacity())
+            throw new BadRequestException("Number of guests exceeds table capacity.");
+
+
+        if (isOverlappingReservation(tempReservation, uuid)) {
+            throw new ConflictException("Table is already reserved at that time.");
+        }
+
+        if (newUser != null) {
+            if (hasUserExistingReservation(tempReservation, uuid)) {
+                throw new ConflictException("User already has a reservation at this time.");
+            }
+        } else if (reservationCreateDto.getUserId() == null && existingReservation.getUser() != null) {
+            if (hasGuestExistingReservation(tempReservation, uuid)) {
+                throw new ConflictException("Guest with this email already has a reservation at this time.");
+            }
+        }
+
+        if (newUser != null) {
+            if (existingReservation.getUser() != null) {
+                existingReservation.getUser().removeReservation(existingReservation);
+            }
+            existingReservation.setUser(newUser);
+            newUser.addReservation(existingReservation);
+        } else if (reservationCreateDto.getUserId() == null && existingReservation.getUser() != null) {
+            existingReservation.getUser().removeReservation(existingReservation);
+            existingReservation.setUser(null);
+        }
+
+        if (newTable != null) {
+            existingReservation.getTable().removeReservation(existingReservation);
+            existingReservation.setTable(newTable);
+            newTable.addReservation(existingReservation);
+        }
+
+        existingReservation.setReservationTime(reservationCreateDto.getReservationTime());
+        existingReservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
 
         Reservation updatedReservation = reservationRepository.save(existingReservation);
         logger.info("Reservation updated successfully: {}", updatedReservation.getId());
@@ -191,30 +296,29 @@ public class ReservationServiceImpl implements ReservationService {
         return ResponseEntity.status(HttpStatus.OK).body(reservationMapper.toDto(updatedReservation));
     }
 
+
     // ------------------- Private Validation Methods -------------------
 
     /**
      * Validates the reservation data.
      *
-     * @param reservation the reservation entity
+     * @param reservationTime the reservation entity
      * @return error message if validation fails, otherwise null
      */
-    private String validateReservationData(Reservation reservation) {
-        LocalDate reservationDate = reservation.getReservationTime().toLocalDate();
+    private String validateReservationData(LocalDateTime reservationTime) {
+        LocalDate reservationDate = reservationTime.toLocalDate();
         LocalDate today = LocalDate.now();
 
         if (!reservationDate.isAfter(today)) {
-            return "Reservation time must be at least the next day.";
+            return "Reservation can't be made for today or past dates.";
         }
 
-        LocalTime reservationStart = reservation.getReservationTime().toLocalTime();
+        LocalTime reservationStart = reservationTime.toLocalTime();
         LocalTime reservationEnd = reservationStart.plus(RESERVATION_DURATION).plusMinutes(BUFFER_DURATION.toMinutes());
 
         if (reservationStart.isBefore(OPENING_TIME) || reservationEnd.isAfter(CLOSING_TIME)) {
             return "Reservation time is outside business hours.";
         }
-
-        // Additional validations can be added here (e.g., maximum capacity of the table)
 
         return null;
     }
@@ -309,37 +413,4 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationRepository.existsByGuestEmailAndReservationTimeAndIdNot(guestEmail, reservationTime, excludeResId);
     }
 
-    // ------------------- Private Helper Methods -------------------
-
-    /**
-     * Checks if a string is null or empty after trimming.
-     *
-     * @param value the string to check
-     * @return true if null or empty, otherwise false
-     */
-    private boolean isNullOrEmpty(String value) {
-        return value == null || value.trim().isEmpty();
-    }
-
-    /**
-     * Validates the format of an email address.
-     *
-     * @param email the email to validate
-     * @return true if invalid, otherwise false
-     */
-    private boolean isInvalidEmail(String email) {
-        String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
-        return !Pattern.compile(emailRegex).matcher(email).matches();
-    }
-
-    /**
-     * Validates the format of a phone number.
-     *
-     * @param phone the phone number to validate
-     * @return true if invalid, otherwise false
-     */
-    private boolean isInvalidPhone(String phone) {
-        String phoneRegex = "^\\+?[0-9]{7,15}$";
-        return !Pattern.compile(phoneRegex).matcher(phone).matches();
-    }
 }

@@ -1,8 +1,12 @@
 package com.mitar.dipl;
 
+import com.mitar.dipl.mapper.ReservationMapper;
+import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
+import com.mitar.dipl.model.dto.reservation.ReservationDto;
 import com.mitar.dipl.model.entity.*;
 import com.mitar.dipl.model.entity.enums.*;
 import com.mitar.dipl.repository.*;
+import com.mitar.dipl.service.ReservationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -22,7 +28,7 @@ public class DatabaseSeederService {
     private final MenuRepository menuRepository;
     private final MenuItemRepository menuItemRepository;
     private final TableRepository tableRepository;
-    private final ReservationRepository reservationRepository;
+    private final ReservationService reservationService; // Injected ReservationService
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final BillRepository billRepository;
@@ -69,7 +75,8 @@ public class DatabaseSeederService {
         TableEntity table2 = createTableIfNotFound(2, 6, true);
 
         // Seed Reservations
-        createReservationIfNotFound(customer, table1, 2);
+        createReservation(customer, table1, 2, LocalDateTime.now().plusDays(1).withHour(12).withMinute(0));
+        createReservation(customer, table2, 4, LocalDateTime.now().plusDays(1).withHour(18).withMinute(30));
 
         // Seed Orders and OrderItems
 
@@ -249,21 +256,22 @@ public class DatabaseSeederService {
         return table;
     }
 
-    private Reservation createReservationIfNotFound(User user, TableEntity table, int numberOfGuests) {
-        Optional<Reservation> reservationOpt = reservationRepository.findByUserAndTable(user, table);
-        if (reservationOpt.isPresent()) {
-            log.info("Reservation already exists for user: {} at table: {}", user.getEmail(), table.getTableNumber());
-            return reservationOpt.get();
+    private void createReservation(User user, TableEntity table, int numberOfGuests, LocalDateTime reservationTime) {
+        ReservationCreateDto reservationDto = new ReservationCreateDto();
+        reservationDto.setUserId(user.getId().toString());
+        reservationDto.setTableId(table.getId().toString());
+        reservationDto.setNumberOfGuests(numberOfGuests);
+        reservationDto.setReservationTime(reservationTime);
+        reservationDto.setGuestName(null);
+        reservationDto.setGuestEmail(null);
+        reservationDto.setGuestPhone(null);
+
+        try {
+            reservationService.createReservation(reservationDto);
+        } catch (Exception e) {
+            log.error("Failed to create reservation for user: {} at table: {} on {}. Error: {}",
+                    user.getEmail(), table.getTableNumber(), reservationTime, e.getMessage());
         }
-
-        Reservation reservation = new Reservation();
-        reservation.setUser(user);
-        reservation.setTable(table);
-        reservation.setNumberOfGuests(numberOfGuests);
-
-        reservationRepository.save(reservation);
-        log.info("Created reservation for user: {} at table: {}", user.getEmail(), table.getTableNumber());
-        return reservation;
     }
 
     private OrderEntity createOrderIfNotFound(User user, Status status) {

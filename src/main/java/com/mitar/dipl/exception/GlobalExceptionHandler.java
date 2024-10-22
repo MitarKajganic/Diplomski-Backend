@@ -1,5 +1,9 @@
 package com.mitar.dipl.exception;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
+import com.mitar.dipl.exception.custom.ConflictException;
+import com.mitar.dipl.exception.custom.InvalidUUIDException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +21,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,8 +35,8 @@ public class GlobalExceptionHandler {
         logger.warn("BadCredentialsException: {}", ex.getMessage());
         ApiError apiError = new ApiError(
                 HttpStatus.UNAUTHORIZED,
-                "Invalid email or password",
-                ex.getMessage()
+                "Invalid email or password.",
+                "Please check your credentials and try again."
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
@@ -44,8 +47,8 @@ public class GlobalExceptionHandler {
         logger.warn("DisabledException: {}", ex.getMessage());
         ApiError apiError = new ApiError(
                 HttpStatus.UNAUTHORIZED,
-                "User account is disabled",
-                ex.getMessage()
+                "User account is disabled.",
+                "Please contact support for assistance."
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
@@ -56,8 +59,8 @@ public class GlobalExceptionHandler {
         logger.warn("UsernameNotFoundException: {}", ex.getMessage());
         ApiError apiError = new ApiError(
                 HttpStatus.NOT_FOUND,
-                "User not found",
-                ex.getMessage()
+                "User not found.",
+                "The user with the provided details does not exist."
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
@@ -68,8 +71,8 @@ public class GlobalExceptionHandler {
         logger.warn("AccessDeniedException: {}", ex.getMessage());
         ApiError apiError = new ApiError(
                 HttpStatus.FORBIDDEN,
-                "Access is denied",
-                ex.getMessage()
+                "Access is denied.",
+                "You do not have the necessary permissions to perform this action."
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
@@ -80,14 +83,14 @@ public class GlobalExceptionHandler {
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .map(error -> capitalize(error.getField()) + ": " + error.getDefaultMessage())
                 .collect(Collectors.toList());
 
         logger.warn("MethodArgumentNotValidException: {}", errors);
 
         ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST,
-                "Validation Failed",
+                "Validation Failed.",
                 errors
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -98,14 +101,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleConstraintViolationException(ConstraintViolationException ex, WebRequest request) {
         List<String> errors = ex.getConstraintViolations()
                 .stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .map(violation -> capitalize(violation.getPropertyPath().toString()) + ": " + violation.getMessage())
                 .collect(Collectors.toList());
 
         logger.warn("ConstraintViolationException: {}", errors);
 
         ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST,
-                "Validation Error",
+                "Validation Error.",
                 errors
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
@@ -114,20 +117,16 @@ public class GlobalExceptionHandler {
     // Handle DataIntegrityViolationException
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiError> handleDataIntegrityViolationException(DataIntegrityViolationException ex, WebRequest request) {
-        Throwable cause = ex.getCause();
-        String errorMessage = "Database integrity violation.";
-        if (cause instanceof SQLIntegrityConstraintViolationException) {
-            errorMessage += " " + cause.getMessage();
-        } else {
-            errorMessage += " " + ex.getMessage();
-        }
+        // Log the full stack trace for internal debugging
+        logger.error("DataIntegrityViolationException: ", ex);
 
-        logger.warn("DataIntegrityViolationException: {}", errorMessage);
+        String userMessage = "A data integrity violation occurred.";
+        String developerMessage = "Database Error: " + extractMessage(ex);
 
         ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST,
-                "Database Error",
-                errorMessage
+                userMessage,
+                developerMessage // Optionally, you might want to omit this or include a more generic message
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
     }
@@ -135,15 +134,36 @@ public class GlobalExceptionHandler {
     // Handle InvalidUUIDException
     @ExceptionHandler(InvalidUUIDException.class)
     public ResponseEntity<ApiError> handleInvalidUUIDException(InvalidUUIDException ex, WebRequest request) {
-        logger.warn("Invalid UUID exception: {}", ex.getMessage());
+        logger.warn("InvalidUUIDException: {}", ex.getMessage());
 
         ApiError apiError = new ApiError(
                 HttpStatus.BAD_REQUEST,
-                "Invalid UUID",
-                List.of(ex.getMessage())
+                "Invalid UUID.",
+                "The provided identifier is not in a valid format."
         );
 
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    // Handle ResourceNotFoundException
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiError> handleResourceNotFound(ResourceNotFoundException ex) {
+        ApiError error = new ApiError(HttpStatus.NOT_FOUND, ex.getMessage(), List.of(ex.getMessage()));
+        return new ResponseEntity<>(error, error.getStatus());
+    }
+
+    // Handle BadRequestException
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex) {
+        ApiError error = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage(), List.of(ex.getMessage()));
+        return new ResponseEntity<>(error, error.getStatus());
+    }
+
+    // Handle ConflictException
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> handleConflict(ConflictException ex) {
+        ApiError error = new ApiError(HttpStatus.CONFLICT, ex.getMessage(), List.of(ex.getMessage()));
+        return new ResponseEntity<>(error, error.getStatus());
     }
 
     // Handle generic exceptions
@@ -152,9 +172,40 @@ public class GlobalExceptionHandler {
         logger.error("Unhandled exception occurred: ", ex);
         ApiError apiError = new ApiError(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected error occurred",
-                ex.getMessage()
+                "An unexpected error occurred.",
+                "Please try again later or contact support."
         );
         return new ResponseEntity<>(apiError, new HttpHeaders(), apiError.getStatus());
+    }
+
+    // Utility method to extract meaningful messages from exceptions
+    private String extractMessage(DataIntegrityViolationException ex) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof SQLIntegrityConstraintViolationException) {
+            String message = cause.getMessage();
+            if (message.contains("Duplicate entry")) {
+                String[] parts = message.split("Duplicate entry '");
+                if (parts.length > 1) {
+                    String entryPart = parts[1];
+                    String[] entryParts = entryPart.split("'");
+                    if (entryParts.length > 0) {
+                        String duplicateValue = entryParts[0];
+                        if (message.contains("for key 'tables.UKfjmmqyocmsfsje61iybqifd96'")) {
+                            return "A table with number '" + duplicateValue + "' already exists.";
+                        }
+                        // Add more specific messages based on different constraints as needed
+                    }
+                }
+            }
+            // Handle other types of constraint violations if necessary
+            return "Database integrity violation: " + message;
+        }
+        return ex.getMessage();
+    }
+
+    // Utility method to capitalize the first letter
+    private String capitalize(String str) {
+        if (str == null || str.isEmpty()) return str;
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 }
