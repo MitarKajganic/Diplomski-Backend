@@ -1,6 +1,7 @@
 package com.mitar.dipl.controller;
 
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
+import com.mitar.dipl.security.CheckSecurity;
 import com.mitar.dipl.service.MenuService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,9 @@ public class MenuController {
 
     private final MenuService menuService;
 
+
     @GetMapping("/all")
+    @CheckSecurity(roles = {"ADMIN"})
     public ResponseEntity<?> getAllMenus() {
         return ResponseEntity.status(HttpStatus.OK).body(menuService.getAllMenus());
     }

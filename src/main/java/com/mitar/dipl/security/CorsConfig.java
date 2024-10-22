@@ -13,19 +13,14 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Define allowed origins (frontend URLs)
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Update with your frontend URL(s)
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
 
-        // Define allowed HTTP methods
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // Define allowed headers
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
-        // Allow credentials (e.g., cookies, authorization headers)
         configuration.setAllowCredentials(true);
 
-        // Optional: Expose headers to the client
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
