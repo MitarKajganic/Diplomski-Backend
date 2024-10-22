@@ -1,7 +1,6 @@
 package com.mitar.dipl.controller;
 
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
-import com.mitar.dipl.security.CheckSecurity;
 import com.mitar.dipl.service.MenuService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -246,6 +246,22 @@ public class SecurityUtils {
     }
 
     /**
+     * Checks if the authenticated user is the owner of the bill by order ID.
+     *
+     * @param orderId The UUID of the order.
+     * @return True if the user is the owner, false otherwise.
+     */
+    public boolean isBillOwnerByOrderId(String orderId) {
+        UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
+        OrderEntity order = orderRepository.findById(parsedOrderId)
+                .orElse(null);
+        if (order == null) {
+            return false;
+        }
+        return getCurrentUserUUID().equals(order.getUser().getId());
+    }
+
+    /**
      * Checks if the authenticated user is accessing their own data.
      *
      * @param userId The UUID of the user.
@@ -255,5 +271,8 @@ public class SecurityUtils {
         UUID parsedUserId = UUIDUtils.parseUUID(userId);
         return getCurrentUserUUID().equals(parsedUserId);
     }
+
+
+
 
 }
