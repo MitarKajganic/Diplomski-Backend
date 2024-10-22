@@ -18,7 +18,7 @@ public class MenuController {
 
 
     @GetMapping("/all")
-    @CheckSecurity(roles = {"ADMIN"})
+    @CheckSecurity(roles = {"SUPER_ADMIN, ADMIN, STAFF"})
     public ResponseEntity<?> getAllMenus() {
         return ResponseEntity.status(HttpStatus.OK).body(menuService.getAllMenus());
     }

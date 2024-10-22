@@ -1,5 +1,6 @@
 package com.mitar.dipl.security;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -9,12 +10,15 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Aspect
 @Component
+@Slf4j
 public class CheckSecurityAspect {
 
     @Before("@annotation(checkSecurity)")
@@ -31,7 +35,11 @@ public class CheckSecurityAspect {
 
         String[] requiredRoles = checkSecurity.roles();
 
-        boolean hasRole = Arrays.stream(requiredRoles)
+        List<String> requiredRolesList = Arrays.stream(requiredRoles[0].split(","))
+                .map(String::trim)
+                .toList();
+
+        boolean hasRole = requiredRolesList.stream()
                 .anyMatch(role -> userRoles.contains("ROLE_" + role));
 
         if (!hasRole) {
