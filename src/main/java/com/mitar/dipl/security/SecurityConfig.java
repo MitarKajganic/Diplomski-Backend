@@ -1,7 +1,5 @@
 package com.mitar.dipl.security;
 
-import com.mitar.dipl.exception.JwtAccessDeniedHandler;
-import com.mitar.dipl.exception.JwtAuthenticationEntryPoint;
 import com.mitar.dipl.security.oauth2.CustomOAuth2UserService;
 import com.mitar.dipl.security.oauth2.OAuth2AuthenticationFailureHandler;
 import com.mitar.dipl.security.oauth2.OAuth2AuthenticationSuccessHandler;
@@ -14,7 +12,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,8 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.DispatcherServlet;
-
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity

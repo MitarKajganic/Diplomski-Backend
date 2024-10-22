@@ -1,21 +1,24 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.staff.StaffCreateDto;
+import com.mitar.dipl.model.dto.staff.StaffDto;
 import com.mitar.dipl.model.dto.staff.StaffUpdateDto;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 public interface StaffService {
 
-    ResponseEntity<?> getAllStaff();
+    List<StaffDto> getAllStaff();
 
-    ResponseEntity<?> getStaffById(String staffId);
+    StaffDto getStaffById(String staffId);
 
-    ResponseEntity<?> getStaffByPosition(String position);
+    List<StaffDto> getStaffByPosition(String position);
 
-    ResponseEntity<?> createStaff(StaffCreateDto staffCreateDto);
+    StaffDto createStaff(StaffCreateDto staffCreateDto);
 
-    ResponseEntity<?> deleteStaff(String staffId);
+    String deleteStaff(String staffId);
 
-    ResponseEntity<?> updateStaff(String staffId, StaffUpdateDto staffUpdateDto);
+    StaffDto updateStaff(String staffId, StaffUpdateDto staffUpdateDto);
 
 }

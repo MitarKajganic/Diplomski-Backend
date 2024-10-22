@@ -1,16 +1,19 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.transaction.TransactionCreateDto;
+import com.mitar.dipl.model.dto.transaction.TransactionDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface TransactionService {
 
-    ResponseEntity<?> getAllTransactions();
+    List<TransactionDto> getAllTransactions();
 
-    ResponseEntity<?> getTransactionById(String transactionId);
+    TransactionDto getTransactionById(String transactionId);
 
-    ResponseEntity<?> getTransactionsByBillId(String billId);
+    List<TransactionDto> getTransactionsByBillId(String billId);
 
-    ResponseEntity<?> createTransaction(TransactionCreateDto transactionCreateDto);
+    TransactionDto createTransaction(TransactionCreateDto transactionCreateDto);
 
 }

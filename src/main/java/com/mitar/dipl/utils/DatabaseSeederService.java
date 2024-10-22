@@ -1,8 +1,6 @@
-package com.mitar.dipl;
+package com.mitar.dipl.utils;
 
-import com.mitar.dipl.mapper.ReservationMapper;
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
-import com.mitar.dipl.model.dto.reservation.ReservationDto;
 import com.mitar.dipl.model.entity.*;
 import com.mitar.dipl.model.entity.enums.*;
 import com.mitar.dipl.repository.*;
@@ -16,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @AllArgsConstructor

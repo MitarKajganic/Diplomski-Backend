@@ -1,20 +1,23 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.order.OrderCreateDto;
+import com.mitar.dipl.model.dto.order.OrderDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface OrderService {
 
-    ResponseEntity<?> getAllOrders();
+    List<OrderDto> getAllOrders();
 
-    ResponseEntity<?> getOrderById(String orderId);
+    OrderDto getOrderById(String orderId);
 
-    ResponseEntity<?> getOrderByBillId(String billId);
+    OrderDto getOrderByBillId(String billId);
 
-    ResponseEntity<?> createOrder(OrderCreateDto orderCreateDto);
+    OrderDto createOrder(OrderCreateDto orderCreateDto);
 
-    ResponseEntity<?> deleteOrder(String orderId);
+    String deleteOrder(String orderId);
 
-    ResponseEntity<?> updateOrder(String orderId, OrderCreateDto orderCreateDto);
+    OrderDto updateOrder(String orderId, OrderCreateDto orderCreateDto);
 
 }

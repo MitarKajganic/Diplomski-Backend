@@ -1,99 +1,161 @@
 package com.mitar.dipl.service.implementation;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.InventoryMapper;
 import com.mitar.dipl.model.dto.inventory.InventoryCreateDto;
 import com.mitar.dipl.model.dto.inventory.InventoryDto;
 import com.mitar.dipl.model.entity.Inventory;
 import com.mitar.dipl.repository.InventoryRepository;
 import com.mitar.dipl.service.InventoryService;
-import jakarta.transaction.Transactional;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.UUID;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 @Transactional
 public class InventoryServiceImpl implements InventoryService {
-
-    private static final Logger logger = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
 
+    /**
+     * Fetches all inventory items.
+     *
+     * @return List of InventoryDto
+     */
     @Override
-    public ResponseEntity<?> getInventories() {
-        logger.info("Fetching all inventories.");
-        return ResponseEntity.ok(inventoryRepository.findAll().stream()
+    public List<InventoryDto> getInventories() {
+        log.info("Fetching all inventories.");
+        List<InventoryDto> inventoryDtos = inventoryRepository.findAll().stream()
                 .map(inventoryMapper::toDto)
-                .toList());
+                .toList();
+        log.info("Fetched {} inventories.", inventoryDtos.size());
+        return inventoryDtos;
     }
 
+    /**
+     * Fetches an inventory item by its ID.
+     *
+     * @param inventoryId The UUID of the inventory item as a string.
+     * @return InventoryDto
+     */
     @Override
-    public ResponseEntity<?> getInventoryById(String inventoryId) {
+    public InventoryDto getInventoryById(String inventoryId) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);
+        log.debug("Fetching inventory with ID: {}", parsedId);
 
-        Optional<Inventory> inventoryOpt = inventoryRepository.findById(parsedId);
-        if (inventoryOpt.isEmpty()) {
-            logger.warn("Inventory not found.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Inventory not found.");
+        Inventory inventory = inventoryRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("Inventory not found with ID: {}", inventoryId);
+                    return new ResourceNotFoundException("Inventory not found with ID: " + inventoryId);
+                });
+
+        InventoryDto inventoryDto = inventoryMapper.toDto(inventory);
+        log.info("Fetched inventory: {}", inventoryDto);
+        return inventoryDto;
+    }
+
+    /**
+     * Fetches an inventory item by its ingredient name.
+     *
+     * @param itemName The name of the ingredient.
+     * @return InventoryDto
+     */
+    @Override
+    public InventoryDto getInventoryByIngredientName(String itemName) {
+        log.debug("Fetching inventory with item name: {}", itemName);
+
+        Inventory inventory = inventoryRepository.findByItemName(itemName)
+                .orElseThrow(() -> {
+                    log.warn("Inventory not found with item name: {}", itemName);
+                    return new ResourceNotFoundException("Inventory not found with item name: " + itemName);
+                });
+
+        InventoryDto inventoryDto = inventoryMapper.toDto(inventory);
+        log.info("Fetched inventory: {}", inventoryDto);
+        return inventoryDto;
+    }
+
+    /**
+     * Creates a new inventory item.
+     *
+     * @param inventoryCreateDto The DTO containing inventory creation data.
+     * @return InventoryDto
+     */
+    @Override
+    public InventoryDto createInventory(InventoryCreateDto inventoryCreateDto) {
+        String itemName = inventoryCreateDto.getItemName();
+        log.debug("Attempting to create inventory with item name: {}", itemName);
+
+        if (inventoryRepository.findByItemName(itemName).isPresent()) {
+            log.warn("Inventory already exists with item name: {}", itemName);
+            throw new BadRequestException("Inventory already exists with item name: " + itemName);
         }
 
-        return ResponseEntity.ok(inventoryMapper.toDto(inventoryOpt.get()));
+        Inventory inventory = inventoryMapper.toEntity(inventoryCreateDto);
+        Inventory savedInventory = inventoryRepository.save(inventory);
+        InventoryDto inventoryDto = inventoryMapper.toDto(savedInventory);
+
+        log.info("Inventory created successfully with ID: {}", savedInventory.getId());
+        return inventoryDto;
     }
 
+    /**
+     * Deletes an inventory item by its ID.
+     *
+     * @param inventoryId The UUID of the inventory item as a string.
+     * @return Success message.
+     */
     @Override
-    public ResponseEntity<?> getInventoryByIngredientName(String itemName) {
-        Optional<Inventory> inventoryOpt = inventoryRepository.findByItemName(itemName);
-        if (inventoryOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Inventory not found.");
-        }
-
-        return ResponseEntity.ok(inventoryMapper.toDto(inventoryOpt.get()));
-    }
-
-    @Override
-    public ResponseEntity<?> createInventory(InventoryCreateDto inventoryCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                inventoryMapper.toDto(inventoryRepository.save(inventoryMapper.toEntity(inventoryCreateDto))));
-    }
-
-    @Override
-    public ResponseEntity<?> deleteInventory(String inventoryId) {
+    public String deleteInventory(String inventoryId) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);
+        log.debug("Attempting to delete inventory with ID: {}", parsedId);
 
-        Optional<Inventory> inventoryOpt = inventoryRepository.findById(parsedId);
-        if (inventoryOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Inventory not found.");
-        }
+        Inventory inventory = inventoryRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("Inventory not found with ID: {}", inventoryId);
+                    return new ResourceNotFoundException("Inventory not found with ID: " + inventoryId);
+                });
 
-        inventoryRepository.delete(inventoryOpt.get());
-        return ResponseEntity.ok("Inventory deleted successfully.");
+        inventoryRepository.delete(inventory);
+        log.info("Inventory deleted successfully with ID: {}", inventoryId);
+        return "Inventory deleted successfully.";
     }
 
+    /**
+     * Updates an existing inventory item.
+     *
+     * @param inventoryId          The UUID of the inventory item as a string.
+     * @param inventoryCreateDto The DTO containing updated inventory data.
+     * @return InventoryDto
+     */
     @Override
-    public ResponseEntity<?> updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto) {
+    public InventoryDto updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);
+        log.debug("Attempting to update inventory with ID: {}", parsedId);
 
-        Optional<Inventory> optionalInventory = inventoryRepository.findById(parsedId);
-        if (optionalInventory.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Inventory not found.");
-        }
-
-        Inventory inventory = optionalInventory.get();
+        Inventory inventory = inventoryRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("Inventory not found with ID: {}", inventoryId);
+                    return new ResourceNotFoundException("Inventory not found with ID: " + inventoryId);
+                });
 
         inventory.setItemName(inventoryCreateDto.getItemName());
         inventory.setQuantity(inventoryCreateDto.getQuantity());
         inventory.setUnit(inventoryCreateDto.getUnit());
+        inventory.setLowStock(false);
 
-        return ResponseEntity.ok(inventoryMapper.toDto(inventoryRepository.save(inventory)));
+        InventoryDto inventoryDto = inventoryMapper.toDto(inventoryRepository.save(inventory));
+
+        log.info("Inventory updated successfully with ID: {}", inventoryId);
+        return inventoryDto;
     }
 }

@@ -37,6 +37,7 @@ public class StaffMapper {
 
     public Staff toEntity(StaffCreateDto staffCreateDto) {
         Staff staff = new Staff();
+
         staff.setEmail(staffCreateDto.getEmail());
         staff.setHashPassword(staffCreateDto.getPassword());
         staff.setActive(true);

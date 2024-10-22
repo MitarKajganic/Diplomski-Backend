@@ -1,4 +1,4 @@
-package com.mitar.dipl.service.implementation;
+package com.mitar.dipl.utils;
 
 import com.mitar.dipl.exception.custom.InvalidUUIDException;
 

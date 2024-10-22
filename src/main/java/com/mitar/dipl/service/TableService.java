@@ -1,20 +1,23 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.table_entity.TableCreateDto;
+import com.mitar.dipl.model.dto.table_entity.TableDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface TableService {
 
-    ResponseEntity<?> getAllTables();
+    List<TableDto> getAllTables();
 
-    ResponseEntity<?> getTableById(String tableId);
+    TableDto getTableById(String tableId);
 
-    ResponseEntity<?> getTableByTableNumber(Integer tableNumber);
+    TableDto getTableByTableNumber(Integer tableNumber);
 
-    ResponseEntity<?> createTable(TableCreateDto tableCreateDto);
+    TableDto createTable(TableCreateDto tableCreateDto);
 
-    ResponseEntity<?> deleteTable(String tableId);
+    String deleteTable(String tableId);
 
-    ResponseEntity<?> updateTable(String tableId, TableCreateDto tableCreateDto);
+    TableDto updateTable(String tableId, TableCreateDto tableCreateDto);
 
 }

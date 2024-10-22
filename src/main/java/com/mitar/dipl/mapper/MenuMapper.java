@@ -1,18 +1,18 @@
 package com.mitar.dipl.mapper;
 
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
 import com.mitar.dipl.model.dto.menu.MenuDto;
 import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
 import com.mitar.dipl.model.entity.Menu;
 import com.mitar.dipl.model.entity.MenuItem;
 import com.mitar.dipl.repository.MenuItemRepository;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -27,7 +27,6 @@ public class MenuMapper {
         menuDto.setId(menu.getId().toString());
         menuDto.setName(menu.getName());
 
-        // Safely map MenuItems to MenuItemDtos
         if (menu.getItems() != null) {
             List<MenuItemDto> menuItemDtos = menu.getItems().stream()
                     .map(menuItemMapper::toDto)
@@ -43,8 +42,10 @@ public class MenuMapper {
         menu.setName(menuCreateDto.getName());
 
         for (String menuItemId : menuCreateDto.getItemIds()) {
-            Optional<MenuItem> menuItemOpt = menuItemRepository.findById(UUID.fromString(menuItemId));
-            menuItemOpt.ifPresent(menu::addMenuItem);
+            UUID parsedMenuItemId = UUIDUtils.parseUUID(menuItemId);
+            MenuItem menuItem = menuItemRepository.findById(parsedMenuItemId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Menu item not found with ID: " + menuItemId));
+            menu.addMenuItem(menuItem);
         }
 
         return menu;

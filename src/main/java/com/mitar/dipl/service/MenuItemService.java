@@ -1,26 +1,29 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.menu_item.MenuItemCreateDto;
+import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface MenuItemService {
 
-    ResponseEntity<?> getMenuItems();
+    List<MenuItemDto> getMenuItems();
 
-    ResponseEntity<?> getMenuItemByName(String name);
+    MenuItemDto getMenuItemByName(String name);
 
-    ResponseEntity<?> getMenuItemsByNameContaining(String name);
+    List<MenuItemDto> getMenuItemsByNameContaining(String name);
 
-    ResponseEntity<?> getMenuItemById(String id);
+    MenuItemDto getMenuItemById(String id);
 
-    ResponseEntity<?> getMenuItemsByCategory(String category);
+    List<MenuItemDto> getMenuItemsByCategory(String category);
 
-    ResponseEntity<?> createMenuItem(MenuItemCreateDto menuItemCreateDto);
+    MenuItemDto createMenuItem(MenuItemCreateDto menuItemCreateDto);
 
-    ResponseEntity<?> deleteMenuItem(String id);
+    String deleteMenuItem(String id);
 
-    ResponseEntity<?> deleteMenuItemFromMenu(String menuItemId, String menuId);
+    String deleteMenuItemFromMenu(String menuItemId, String menuId);
 
-    ResponseEntity<?> updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto);
+    MenuItemDto updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto);
 
 }

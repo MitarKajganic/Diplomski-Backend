@@ -1,5 +1,7 @@
 package com.mitar.dipl.service.implementation;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.MenuItemMapper;
 import com.mitar.dipl.model.dto.menu_item.MenuItemCreateDto;
 import com.mitar.dipl.model.dto.menu_item.MenuItemDto;
@@ -9,174 +11,279 @@ import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.MenuRepository;
 import com.mitar.dipl.repository.OrderItemRepository;
 import com.mitar.dipl.service.MenuItemService;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 @Transactional
 public class MenuItemServiceImpl implements MenuItemService {
-
-    private static final Logger logger = LoggerFactory.getLogger(MenuItemServiceImpl.class);
 
     private final MenuItemRepository menuItemRepository;
     private final MenuRepository menuRepository;
     private final OrderItemRepository orderItemRepository;
     private final MenuItemMapper menuItemMapper;
 
+    /**
+     * Fetches all menu items.
+     *
+     * @return List of MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> getMenuItems() {
-        logger.info("Fetching all MenuItems.");
-        return ResponseEntity.ok(menuItemRepository.findAll().stream()
+    public List<MenuItemDto> getMenuItems() {
+        log.info("Fetching all MenuItems.");
+        List<MenuItemDto> menuItemDtos = menuItemRepository.findAll().stream()
                 .map(menuItemMapper::toDto)
-                .toList()
-        );
+                .toList();
+        log.info("Fetched {} MenuItems.", menuItemDtos.size());
+        return menuItemDtos;
     }
 
+    /**
+     * Fetches a menu item by its name.
+     *
+     * @param name The name of the menu item.
+     * @return MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> getMenuItemByName(String name) {
-        Optional<MenuItem> menuItemOpt = menuItemRepository.findByName(name);
-        if (menuItemOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
-        }
-        MenuItemDto dto = menuItemMapper.toDto(menuItemOpt.get());
-        return ResponseEntity.ok(dto);
+    public MenuItemDto getMenuItemByName(String name) {
+        log.debug("Fetching MenuItem with name: {}", name);
+        MenuItem menuItem = menuItemRepository.findByName(name)
+                .orElseThrow(() -> {
+                    log.warn("MenuItem not found with name: {}", name);
+                    return new ResourceNotFoundException("MenuItem not found with name: " + name);
+                });
+        MenuItemDto menuItemDto = menuItemMapper.toDto(menuItem);
+        log.info("Fetched MenuItem: {}", menuItemDto);
+        return menuItemDto;
     }
 
+    /**
+     * Fetches menu items containing the specified name (case-insensitive).
+     *
+     * @param name The partial name to search for.
+     * @return List of MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> getMenuItemsByNameContaining(String name) {
+    public List<MenuItemDto> getMenuItemsByNameContaining(String name) {
+        log.debug("Fetching MenuItems containing name: {}", name);
         List<MenuItem> menuItems = menuItemRepository.findAllByNameContainingIgnoreCase(name);
         if (menuItems.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No MenuItems found containing: " + name);
+            log.warn("No MenuItems found containing: {}", name);
+            throw new ResourceNotFoundException("No MenuItems found containing: " + name);
         }
-        return ResponseEntity.ok(menuItems.stream()
+        List<MenuItemDto> menuItemDtos = menuItems.stream()
                 .map(menuItemMapper::toDto)
-                .toList()
-        );
+                .toList();
+        log.info("Fetched {} MenuItems containing: {}", menuItemDtos.size(), name);
+        return menuItemDtos;
     }
 
+    /**
+     * Fetches a menu item by its ID.
+     *
+     * @param id The UUID of the menu item as a string.
+     * @return MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> getMenuItemById(String id) {
+    public MenuItemDto getMenuItemById(String id) {
         UUID parsedId = UUIDUtils.parseUUID(id);
+        log.debug("Fetching MenuItem with ID: {}", parsedId);
 
-        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedId);
-        if (menuItemOpt.isEmpty()) {
-            logger.warn("MenuItem not found.");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
-        }
-        return ResponseEntity.ok(menuItemMapper.toDto(menuItemOpt.get()));
+        MenuItem menuItem = menuItemRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("MenuItem not found with ID: {}", id);
+                    return new ResourceNotFoundException("MenuItem not found with ID: " + id);
+                });
+
+        MenuItemDto menuItemDto = menuItemMapper.toDto(menuItem);
+        log.info("Fetched MenuItem: {}", menuItemDto);
+        return menuItemDto;
     }
 
+    /**
+     * Fetches menu items by their category.
+     *
+     * @param category The category to filter by.
+     * @return List of MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> getMenuItemsByCategory(String category) {
-        return ResponseEntity.ok(menuItemRepository.findAllByCategory(category).stream()
+    public List<MenuItemDto> getMenuItemsByCategory(String category) {
+        log.debug("Fetching MenuItems by category: {}", category);
+        List<MenuItem> menuItems = menuItemRepository.findAllByCategory(category);
+        if (menuItems.isEmpty()) {
+            log.warn("No MenuItems found in category: {}", category);
+            throw new ResourceNotFoundException("No MenuItems found in category: " + category);
+        }
+        List<MenuItemDto> menuItemDtos = menuItems.stream()
                 .map(menuItemMapper::toDto)
-                .toList());
+                .toList();
+        log.info("Fetched {} MenuItems in category: {}", menuItemDtos.size(), category);
+        return menuItemDtos;
     }
 
+    /**
+     * Creates a new menu item.
+     *
+     * @param menuItemCreateDto The DTO containing menu item creation data.
+     * @return MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> createMenuItem(MenuItemCreateDto menuItemCreateDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                menuItemMapper.toDto(menuItemRepository.save(menuItemMapper.toEntity(menuItemCreateDto))));
-    }
+    public MenuItemDto createMenuItem(MenuItemCreateDto menuItemCreateDto) {
+        String itemName = menuItemCreateDto.getName();
+        log.debug("Attempting to create MenuItem with name: {}", itemName);
 
-    @Override
-    public ResponseEntity<?> deleteMenuItem(String id) {
-        UUID parsedId = UUIDUtils.parseUUID(id);
-
-        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedId);
-        if (menuItemOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        if (menuItemRepository.findByName(itemName).isPresent()) {
+            log.warn("MenuItem already exists with name: {}", itemName);
+            throw new BadRequestException("MenuItem already exists with name: " + itemName);
         }
 
-        MenuItem menuItem = menuItemOpt.get();
+        UUID menuId = UUIDUtils.parseUUID(menuItemCreateDto.getMenuId());
+        Menu menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> {
+                    log.warn("Menu not found with ID: {}", menuId);
+                    return new ResourceNotFoundException("Menu not found with ID: " + menuId);
+                });
+
+        MenuItem menuItem = menuItemMapper.toEntity(menuItemCreateDto);
+        menuItem.setMenu(menu);
+
+        MenuItem savedMenuItem = menuItemRepository.save(menuItem);
+        menu.addMenuItem(savedMenuItem);
+
+        MenuItemDto menuItemDto = menuItemMapper.toDto(savedMenuItem);
+        log.info("MenuItem created successfully: {}", menuItemDto);
+        return menuItemDto;
+    }
+
+    /**
+     * Deletes a menu item by its ID.
+     *
+     * @param id The UUID of the menu item as a string.
+     * @return Success message.
+     */
+    @Override
+    public String deleteMenuItem(String id) {
+        UUID parsedId = UUIDUtils.parseUUID(id);
+        log.debug("Attempting to delete MenuItem with ID: {}", parsedId);
+
+        MenuItem menuItem = menuItemRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("MenuItem not found with ID: {}", id);
+                    return new ResourceNotFoundException("MenuItem not found with ID: " + id);
+                });
 
         boolean isReferenced = orderItemRepository.existsByMenuItem(menuItem);
         if (isReferenced) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Cannot delete MenuItem '" + menuItem.getName() + "' as it is associated with existing orders.");
+            log.warn("Cannot delete MenuItem '{}' as it is associated with existing orders.", menuItem.getName());
+            throw new BadRequestException("Cannot delete MenuItem '" + menuItem.getName() + "' as it is associated with existing orders.");
         }
 
         Menu menu = menuItem.getMenu();
-        if (menu != null)
+        if (menu != null) {
             menu.removeMenuItem(menuItem);
-
-        menuItemRepository.delete(menuItem);
-        return ResponseEntity.ok("MenuItem deleted successfully.");
-    }
-
-    @Override
-    public ResponseEntity<?> deleteMenuItemFromMenu(String menuItemId, String menuId) {
-        UUID parsedMenuItemId = UUIDUtils.parseUUID(menuItemId);
-        UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
-
-        Optional<MenuItem> menuItemOpt = menuItemRepository.findById(parsedMenuItemId);
-        if (menuItemOpt.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
-
-
-        MenuItem menuItem = menuItemOpt.get();
-
-        Optional<Menu> menuOpt = menuRepository.findById(parsedMenuId);
-        if (menuOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Menu not found.");
+            log.debug("Removed MenuItem '{}' from Menu '{}'.", menuItem.getName(), menu.getName());
         }
 
-        Menu menu = menuOpt.get();
+        menuItemRepository.delete(menuItem);
+        log.info("MenuItem deleted successfully with ID: {}", id);
+        return "MenuItem deleted successfully.";
+    }
+
+    /**
+     * Removes a menu item from a specific menu.
+     *
+     * @param menuItemId The UUID of the menu item as a string.
+     * @param menuId     The UUID of the menu as a string.
+     * @return Success message.
+     */
+    @Override
+    public String deleteMenuItemFromMenu(String menuItemId, String menuId) {
+        UUID parsedMenuItemId = UUIDUtils.parseUUID(menuItemId);
+        UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
+        log.debug("Attempting to remove MenuItem with ID: {} from Menu with ID: {}", parsedMenuItemId, parsedMenuId);
+
+        MenuItem menuItem = menuItemRepository.findById(parsedMenuItemId)
+                .orElseThrow(() -> {
+                    log.warn("MenuItem not found with ID: {}", menuItemId);
+                    return new ResourceNotFoundException("MenuItem not found with ID: " + menuItemId);
+                });
+
+        Menu menu = menuRepository.findById(parsedMenuId)
+                .orElseThrow(() -> {
+                    log.warn("Menu not found with ID: {}", menuId);
+                    return new ResourceNotFoundException("Menu not found with ID: " + menuId);
+                });
 
         if (!menu.getItems().contains(menuItem)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("MenuItem is not associated with the specified Menu.");
+            log.warn("MenuItem '{}' is not associated with Menu '{}'.", menuItem.getName(), menu.getName());
+            throw new BadRequestException("MenuItem is not associated with the specified Menu.");
         }
 
         menu.removeMenuItem(menuItem);
-
-        return ResponseEntity.ok("MenuItem removed from Menu successfully.");
+        log.info("MenuItem '{}' removed from Menu '{}'.", menuItem.getName(), menu.getName());
+        return "MenuItem removed from Menu successfully.";
     }
 
+    /**
+     * Updates an existing menu item.
+     *
+     * @param id                 The UUID of the menu item as a string.
+     * @param menuItemCreateDto The DTO containing updated menu item data.
+     * @return MenuItemDto
+     */
     @Override
-    public ResponseEntity<?> updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto) {
+    public MenuItemDto updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto) {
         UUID parsedId = UUIDUtils.parseUUID(id);
+        log.debug("Attempting to update MenuItem with ID: {}", parsedId);
 
-        Optional<MenuItem> optionalMenuItem = menuItemRepository.findById(parsedId);
-        if (optionalMenuItem.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("MenuItem not found.");
+        MenuItem menuItem = menuItemRepository.findById(parsedId)
+                .orElseThrow(() -> {
+                    log.warn("MenuItem not found with ID: {}", id);
+                    return new ResourceNotFoundException("MenuItem not found with ID: " + id);
+                });
+
+        String newName = menuItemCreateDto.getName();
+        if (!menuItem.getName().equalsIgnoreCase(newName)) {
+            if (menuItemRepository.findByName(newName).isPresent()) {
+                log.warn("Another MenuItem already exists with name: {}", newName);
+                throw new BadRequestException("Another MenuItem already exists with name: " + newName);
+            }
+            menuItem.setName(newName);
+            log.debug("Updated MenuItem name to: {}", newName);
         }
 
-        MenuItem menuItem = optionalMenuItem.get();
-
-        menuItem.setName(menuItemCreateDto.getName());
         menuItem.setDescription(menuItemCreateDto.getDescription());
         menuItem.setPrice(menuItemCreateDto.getPrice());
         menuItem.setCategory(menuItemCreateDto.getCategory());
+        log.debug("Updated MenuItem fields: description, price, category.");
 
         UUID newMenuId = UUIDUtils.parseUUID(menuItemCreateDto.getMenuId());
+        Menu newMenu = menuRepository.findById(newMenuId)
+                .orElseThrow(() -> {
+                    log.warn("Menu not found with ID: {}", newMenuId);
+                    return new ResourceNotFoundException("New Menu not found with ID: " + newMenuId);
+                });
 
         Menu currentMenu = menuItem.getMenu();
         if (currentMenu == null || !currentMenu.getId().equals(newMenuId)) {
-            Optional<Menu> newMenuOpt = menuRepository.findById(newMenuId);
-            if (newMenuOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("New Menu not found.");
-            }
-
-            Menu newMenu = newMenuOpt.get();
-
             if (currentMenu != null) {
                 currentMenu.removeMenuItem(menuItem);
+                log.debug("Removed MenuItem '{}' from previous Menu '{}'.", menuItem.getName(), currentMenu.getName());
             }
-
             newMenu.addMenuItem(menuItem);
+            log.debug("Added MenuItem '{}' to new Menu '{}'.", menuItem.getName(), newMenu.getName());
         }
 
-        MenuItem updatedMenuItem = menuItemRepository.save(menuItem);
-        MenuItemDto dto = menuItemMapper.toDto(updatedMenuItem);
-        return ResponseEntity.ok(dto);
+        MenuItemDto menuItemDto = menuItemMapper.toDto(menuItemRepository.save(menuItem));
+        log.info("MenuItem updated successfully: {}", menuItemDto);
+        return menuItemDto;
     }
 }

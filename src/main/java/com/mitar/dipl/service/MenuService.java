@@ -1,20 +1,23 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.menu.MenuCreateDto;
+import com.mitar.dipl.model.dto.menu.MenuDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface MenuService {
 
-    ResponseEntity<?> getAllMenus();
+    List<MenuDto> getAllMenus();
 
-    ResponseEntity<?> getMenuById(String menuId);
+    MenuDto getMenuById(String menuId);
 
-    ResponseEntity<?> getMenuByMenuName(String menuName);
+    MenuDto getMenuByMenuName(String menuName);
 
-    ResponseEntity<?> createMenu(MenuCreateDto menuCreateDto);
+    MenuDto createMenu(MenuCreateDto menuCreateDto);
 
-    ResponseEntity<?> deleteMenu(String menuId);
+    String deleteMenu(String menuId);
 
-    ResponseEntity<?> updateMenu(String menuId, MenuCreateDto menuCreateDto);
+    MenuDto updateMenu(String menuId, MenuCreateDto menuCreateDto);
 
 }

@@ -16,29 +16,16 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderItemMapper {
 
-    private OrderRepository orderRepository;
-
-    private MenuItemRepository menuItemRepository;
-
     public OrderItemDto toDto(OrderItem orderItem) {
         OrderItemDto orderItemDto = new OrderItemDto();
+
         orderItemDto.setId(orderItem.getId().toString());
         orderItemDto.setPrice(orderItem.getPrice());
         orderItemDto.setQuantity(orderItem.getQuantity());
         orderItemDto.setOrderId(orderItem.getOrderEntity().getId().toString());
         orderItemDto.setMenuItemId(orderItem.getMenuItem().getId().toString());
-        return orderItemDto;
-    }
 
-    public OrderItem toEntity(OrderItemCreateDto orderItemCreateDto) {
-        OrderItem orderItem = new OrderItem();
-        orderItem.setPrice(orderItemCreateDto.getPrice());
-        orderItem.setQuantity(orderItemCreateDto.getQuantity());
-        OrderEntity orderEntity = orderRepository.findById(UUID.fromString(orderItemCreateDto.getOrderId())).orElseThrow();
-        orderItem.setOrderEntity(orderEntity);
-        MenuItem menuItem = menuItemRepository.findById(UUID.fromString(orderItemCreateDto.getMenuItemId())).orElseThrow();
-        orderItem.setMenuItem(menuItem);
-        return orderItem;
+        return orderItemDto;
     }
 
 }

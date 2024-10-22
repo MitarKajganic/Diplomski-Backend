@@ -21,27 +21,27 @@ public class ReservationController {
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllReservations() {
-        return reservationService.getAllReservations();
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getAllReservations());
     }
 
     @GetMapping("/all-including-deleted")
     public ResponseEntity<?> getAllIncludingDeleted() {
-        return reservationService.getAllIncludingDeleted();
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getAllIncludingDeleted());
     }
 
     @GetMapping("/{reservationId}")
     public ResponseEntity<?> getReservationById(@PathVariable String reservationId) {
-        return reservationService.getReservationById(reservationId);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(reservationId));
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getReservationsByUserId(@PathVariable String userId) {
-        return reservationService.getReservationsByUserId(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByUserId(userId));
     }
 
     @GetMapping("/table/{tableId}")
     public ResponseEntity<?> getReservationsByTableId(@PathVariable String tableId) {
-        return reservationService.getReservationsByTableId(tableId);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByTableId(tableId));
     }
 
     @GetMapping("/guest-name/{guestName}")
@@ -49,33 +49,33 @@ public class ReservationController {
                                                             @NotEmpty (message = "Guest name must not be empty.")
                                                             @NotNull (message = "Guest name must not be null.")
                                                             String guestName) {
-        return reservationService.getReservationsByGuestName(guestName);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByGuestName(guestName));
     }
 
     @GetMapping("/guest-email/{guestEmail}")
     public ResponseEntity<?> getReservationsByGuestEmail(@PathVariable @Email String guestEmail) {
-        return reservationService.getReservationsByGuestEmail(guestEmail);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByGuestEmail(guestEmail));
     }
 
     @GetMapping("/guest-phone/{guestPhone}")
     public ResponseEntity<?> getReservationsByGuestPhone(@PathVariable
                                                              @Pattern(regexp = "^\\+?[0-9]{7,15}$", message = "Invalid guest phone number format.")
                                                              String guestPhone) {
-        return reservationService.getReservationsByGuestPhone(guestPhone);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByGuestPhone(guestPhone));
     }
 
     @PostMapping
     public ResponseEntity<?> createReservation(@RequestBody @Validated ReservationCreateDto reservationCreateDto) {
-        return reservationService.createReservation(reservationCreateDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(reservationService.createReservation(reservationCreateDto));
     }
 
     @DeleteMapping("/delete/{reservationId}")
     public ResponseEntity<?> deleteReservation(@PathVariable String reservationId) {
-        return reservationService.deleteReservation(reservationId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(reservationService.deleteReservation(reservationId));
     }
 
     @PutMapping("/update/{reservationId}")
     public ResponseEntity<?> updateReservation(@PathVariable String reservationId, @RequestBody @Validated ReservationCreateDto reservationCreateDto) {
-        return reservationService.updateReservation(reservationId, reservationCreateDto);
+        return ResponseEntity.status(HttpStatus.OK).body(reservationService.updateReservation(reservationId, reservationCreateDto));
     }
 }

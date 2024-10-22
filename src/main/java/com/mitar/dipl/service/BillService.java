@@ -1,14 +1,17 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.bill.BillCreateDto;
+import com.mitar.dipl.model.dto.bill.BillDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface BillService {
 
-    ResponseEntity<?> getAll();
+    List<BillDto> getAll();
 
-    ResponseEntity<?> getBillById(String id);
+    BillDto getBillById(String id);
 
-    ResponseEntity<?> createBill(BillCreateDto billCreateDto);
+    BillDto createBill(BillCreateDto billCreateDto);
 
 }

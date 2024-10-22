@@ -17,6 +17,7 @@ public class UserMapper {
 
     public UserDto toDto(User user) {
         UserDto userDto = new UserDto();
+
         userDto.setId(user.getId().toString());
         userDto.setEmail(user.getEmail());
         userDto.setReservations(user.getReservations().stream()
@@ -24,15 +25,18 @@ public class UserMapper {
                 .collect(Collectors.toSet()));
         userDto.setRole(user.getRole().name());
         userDto.setActive(user.getActive());
+
         return userDto;
     }
 
     public User toEntity(UserCreateDto userCreateDto) {
         User user = new User();
+
         user.setEmail(userCreateDto.getEmail());
         user.setHashPassword(userCreateDto.getPassword());
         user.setRole(Role.CUSTOMER);
         user.setActive(true);
+
         return user;
     }
 

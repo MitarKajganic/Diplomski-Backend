@@ -5,6 +5,7 @@ import com.mitar.dipl.exception.custom.ConflictException;
 import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.ReservationMapper;
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
+import com.mitar.dipl.model.dto.reservation.ReservationDto;
 import com.mitar.dipl.model.entity.Reservation;
 import com.mitar.dipl.model.entity.TableEntity;
 import com.mitar.dipl.model.entity.User;
@@ -12,25 +13,21 @@ import com.mitar.dipl.repository.ReservationRepository;
 import com.mitar.dipl.repository.TableRepository;
 import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.ReservationService;
-import jakarta.transaction.Transactional;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Optional;
-import java.util.UUID;
-
-import static com.mitar.dipl.service.implementation.UUIDUtils.parseUUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 @Transactional
 public class ReservationServiceImpl implements ReservationService {
 
@@ -38,136 +35,214 @@ public class ReservationServiceImpl implements ReservationService {
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
     private final ReservationMapper reservationMapper;
-    private static final Logger logger = LoggerFactory.getLogger(ReservationService.class);
 
-    // Business hours constants
     private static final LocalTime OPENING_TIME = LocalTime.of(10, 0);
     private static final LocalTime CLOSING_TIME = LocalTime.of(22, 0);
     private static final Duration BUFFER_DURATION = Duration.ofMinutes(30);
     private static final Duration RESERVATION_DURATION = Duration.ofHours(2);
 
+    /**
+     * Fetches all reservations.
+     *
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getAllReservations() {
-        logger.info("Fetching all reservations.");
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAll().stream()
+    public List<ReservationDto> getAllReservations() {
+        log.info("Fetching all reservations.");
+        List<ReservationDto> reservationDtos = reservationRepository.findAll().stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+        log.info("Fetched {} reservations.", reservationDtos.size());
+        return reservationDtos;
     }
 
+    /**
+     * Fetches all reservations including soft-deleted ones.
+     *
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getAllIncludingDeleted() {
-        logger.info("Fetching all reservations including deleted.");
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllIncludingDeleted().stream()
+    public List<ReservationDto> getAllIncludingDeleted() {
+        log.info("Fetching all reservations including deleted.");
+        List<ReservationDto> reservationDtos = reservationRepository.findAllIncludingDeleted().stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+        log.info("Fetched {} reservations including deleted.", reservationDtos.size());
+        return reservationDtos;
     }
 
+    /**
+     * Fetches a reservation by its ID.
+     *
+     * @param reservationId The UUID of the reservation as a string.
+     * @return ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationById(String reservationId) {
-        UUID reservationUUID = parseUUID(reservationId);
+    public ReservationDto getReservationById(String reservationId) {
+        UUID reservationUUID = UUIDUtils.parseUUID(reservationId);
+        log.debug("Fetching Reservation with ID: {}", reservationUUID);
+
         Reservation reservation = reservationRepository.findById(reservationUUID)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
-        return ResponseEntity.status(HttpStatus.OK).body(reservationMapper.toDto(reservation));
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found with ID: {}", reservationId);
+                    return new ResourceNotFoundException("Reservation not found with ID: " + reservationId);
+                });
+
+        ReservationDto reservationDto = reservationMapper.toDto(reservation);
+        log.info("Retrieved Reservation ID: {}", reservationId);
+        return reservationDto;
     }
 
+    /**
+     * Fetches reservations by User ID.
+     *
+     * @param userId The UUID of the user as a string.
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationsByUserId(String userId) {
-        UUID userUUID = parseUUID(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByUser_Id(userUUID).stream()
+    public List<ReservationDto> getReservationsByUserId(String userId) {
+        UUID userUUID = UUIDUtils.parseUUID(userId);
+        log.debug("Fetching Reservations for User ID: {}", userUUID);
+
+        List<Reservation> reservations = reservationRepository.findAllByUser_Id(userUUID);
+        List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+
+        log.info("Fetched {} reservations for User ID: {}", reservationDtos.size(), userId);
+        return reservationDtos;
     }
 
+    /**
+     * Fetches reservations by Table ID.
+     *
+     * @param tableId The UUID of the table as a string.
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationsByTableId(String tableId) {
-        UUID tableUUID = parseUUID(tableId);
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByTable_Id(tableUUID).stream()
+    public List<ReservationDto> getReservationsByTableId(String tableId) {
+        UUID tableUUID = UUIDUtils.parseUUID(tableId);
+        log.debug("Fetching Reservations for Table ID: {}", tableUUID);
+
+        List<Reservation> reservations = reservationRepository.findAllByTable_Id(tableUUID);
+        List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+
+        log.info("Fetched {} reservations for Table ID: {}", reservationDtos.size(), tableId);
+        return reservationDtos;
     }
 
+    /**
+     * Fetches reservations by Guest Name.
+     *
+     * @param guestName The name of the guest.
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationsByGuestName(String guestName) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestName(guestName).stream()
+    public List<ReservationDto> getReservationsByGuestName(String guestName) {
+        log.debug("Fetching Reservations for Guest Name: {}", guestName);
+
+        List<Reservation> reservations = reservationRepository.findAllByGuestName(guestName);
+        List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+
+        log.info("Fetched {} reservations for Guest Name: {}", reservationDtos.size(), guestName);
+        return reservationDtos;
     }
 
+    /**
+     * Fetches reservations by Guest Email.
+     *
+     * @param guestEmail The email of the guest.
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationsByGuestEmail(String guestEmail) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestEmail(guestEmail).stream()
+    public List<ReservationDto> getReservationsByGuestEmail(String guestEmail) {
+        log.debug("Fetching Reservations for Guest Email: {}", guestEmail);
+
+        List<Reservation> reservations = reservationRepository.findAllByGuestEmail(guestEmail);
+        List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+
+        log.info("Fetched {} reservations for Guest Email: {}", reservationDtos.size(), guestEmail);
+        return reservationDtos;
     }
 
+    /**
+     * Fetches reservations by Guest Phone.
+     *
+     * @param guestPhone The phone number of the guest.
+     * @return List of ReservationDto
+     */
     @Override
-    public ResponseEntity<?> getReservationsByGuestPhone(String guestPhone) {
-        return ResponseEntity.status(HttpStatus.OK).body(reservationRepository.findAllByGuestPhone(guestPhone).stream()
+    public List<ReservationDto> getReservationsByGuestPhone(String guestPhone) {
+        log.debug("Fetching Reservations for Guest Phone: {}", guestPhone);
+
+        List<Reservation> reservations = reservationRepository.findAllByGuestPhone(guestPhone);
+        List<ReservationDto> reservationDtos = reservations.stream()
                 .map(reservationMapper::toDto)
-                .toList()
-        );
+                .toList();
+
+        log.info("Fetched {} reservations for Guest Phone: {}", reservationDtos.size(), guestPhone);
+        return reservationDtos;
     }
 
+    /**
+     * Creates a new reservation.
+     *
+     * @param reservationCreateDto The DTO containing reservation creation data.
+     * @return ReservationDto
+     */
     @Override
-    public ResponseEntity<?> createReservation(ReservationCreateDto reservationCreateDto) {
-        logger.info("Attempting to create reservation with data: {}", reservationCreateDto);
+    public ReservationDto createReservation(ReservationCreateDto reservationCreateDto) {
+        log.info("Attempting to create reservation with data: {}", reservationCreateDto);
 
-        String validation = validateReservationData(reservationCreateDto.getReservationTime());
-
-        if (validation != null) {
-            throw new BadRequestException(validation);
+        String validationError = validateReservationData(reservationCreateDto.getReservationTime());
+        if (validationError != null) {
+            throw new BadRequestException(validationError);
         }
 
-        Reservation reservation = new Reservation();
-        reservation.setReservationTime(reservationCreateDto.getReservationTime());
-
-        UUID tableId = parseUUID(reservationCreateDto.getTableId());
+        UUID tableId = UUIDUtils.parseUUID(reservationCreateDto.getTableId());
         TableEntity table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new ResourceNotFoundException("Table not found."));
+                .orElseThrow(() -> {
+                    log.warn("Table not found with ID: {}", reservationCreateDto.getTableId());
+                    return new ResourceNotFoundException("Table not found with ID: " + reservationCreateDto.getTableId());
+                });
 
         User user = null;
-        if (reservationCreateDto.getUserId() != null) {
-            UUID userId = parseUUID(reservationCreateDto.getUserId());
+        if (reservationCreateDto.getUserId() != null && !reservationCreateDto.getUserId().isEmpty()) {
+            UUID userId = UUIDUtils.parseUUID(reservationCreateDto.getUserId());
             user = userRepository.findById(userId)
-                    .orElseThrow(() -> new ResourceNotFoundException("User not found."));
+                    .orElseThrow(() -> {
+                        log.warn("User not found with ID: {}", reservationCreateDto.getUserId());
+                        return new ResourceNotFoundException("User not found with ID: " + reservationCreateDto.getUserId());
+                    });
         }
 
-        if (reservationCreateDto.getNumberOfGuests() > table.getCapacity())
+        if (reservationCreateDto.getNumberOfGuests() > table.getCapacity()) {
+            log.warn("Number of guests {} exceeds table capacity {}.", reservationCreateDto.getNumberOfGuests(), table.getCapacity());
             throw new BadRequestException("Number of guests exceeds table capacity.");
-
-        reservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
-
-        if (user != null) {
-            reservation.setUser(user);
-            reservation.setGuestPhone(null);
-            reservation.setGuestEmail(null);
-            reservation.setGuestName(null);
-        } else {
-            reservation.setUser(null);
-            reservation.setGuestPhone(reservationCreateDto.getGuestPhone());
-            reservation.setGuestEmail(reservationCreateDto.getGuestEmail());
-            reservation.setGuestName(reservationCreateDto.getGuestName());
         }
 
-        reservation.setTable(table);
+        Reservation reservation = setReservation(reservationCreateDto, table, user);
 
         if (isOverlappingReservation(reservation)) {
-            throw new ConflictException("Table is already reserved at that time.");
+            log.warn("Table {} is already reserved at {}", tableId, reservation.getReservationTime());
+            throw new ConflictException("Table is already reserved at the requested time.");
         }
 
         if (user != null) {
             if (hasUserExistingReservation(reservation)) {
-                throw new ConflictException("User already has a reservation at this time.");
+                log.warn("User {} already has a reservation at {}", user.getId(), reservation.getReservationTime());
+                throw new ConflictException("User already has a reservation at the requested time.");
             }
         } else {
             if (hasGuestExistingReservation(reservation)) {
-                throw new ConflictException("Guest with this email already has a reservation at this time.");
+                log.warn("Guest with email {} already has a reservation at {}", reservation.getGuestEmail(), reservation.getReservationTime());
+                throw new ConflictException("Guest with this email already has a reservation at the requested time.");
             }
         }
 
@@ -177,111 +252,176 @@ public class ReservationServiceImpl implements ReservationService {
         table.addReservation(reservation);
 
         Reservation savedReservation = reservationRepository.save(reservation);
-        logger.info("Reservation created successfully: {}", savedReservation.getId());
+        log.info("Reservation created successfully with ID: {}", savedReservation.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(reservationMapper.toDto(savedReservation));
+        return reservationMapper.toDto(savedReservation);
     }
 
+    /**
+     * Creates a new reservation.
+     *
+     * @param reservationCreateDto The DTO containing reservation creation data.
+     * @param table The table entity.
+     * @param user The user entity.
+     * @return ReservationDto
+     */
+    private static Reservation setReservation(ReservationCreateDto reservationCreateDto, TableEntity table, User user) {
+        Reservation reservation = new Reservation();
+        reservation.setReservationTime(reservationCreateDto.getReservationTime());
+        reservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
+        reservation.setTable(table);
 
+        if (user != null) {
+            reservation.setUser(user);
+            reservation.setGuestPhone(null);
+            reservation.setGuestEmail(null);
+            reservation.setGuestName(null);
+        } else {
+            reservation.setGuestPhone(reservationCreateDto.getGuestPhone());
+            reservation.setGuestEmail(reservationCreateDto.getGuestEmail());
+            reservation.setGuestName(reservationCreateDto.getGuestName());
+        }
+        return reservation;
+    }
+
+    /**
+     * Deletes (soft-deletes) a reservation by its ID.
+     *
+     * @param reservationId The UUID of the reservation as a string.
+     * @return Success message.
+     */
     @Override
-    public ResponseEntity<?> deleteReservation(String reservationId) {
-        UUID uuid = parseUUID(reservationId);
+    public String deleteReservation(String reservationId) {
+        UUID uuid = UUIDUtils.parseUUID(reservationId);
+        log.debug("Attempting to delete Reservation with ID: {}", uuid);
 
         Reservation reservation = reservationRepository.findById(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found for deletion with ID: {}", reservationId);
+                    return new ResourceNotFoundException("Reservation not found with ID: " + reservationId);
+                });
 
         if (reservation.getDeleted()) {
+            log.warn("Reservation ID {} is already deleted.", reservationId);
             throw new BadRequestException("Reservation is already deleted.");
         }
 
         reservation.setDeleted(true);
 
-        if (reservation.getUser() != null) {
+        if (reservation.getUser() != null)
             reservation.getUser().removeReservation(reservation);
-        }
-        if (reservation.getTable() != null) {
+
+        if (reservation.getTable() != null)
             reservation.getTable().removeReservation(reservation);
-        }
+
 
         reservationRepository.save(reservation);
-        logger.info("Reservation soft-deleted successfully: {}", reservationId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Reservation deleted successfully.");
+        log.info("Reservation soft-deleted successfully with ID: {}", reservationId);
+        return "Reservation deleted successfully.";
     }
 
+    /**
+     * Updates an existing reservation.
+     *
+     * @param reservationId        The UUID of the reservation as a string.
+     * @param reservationCreateDto The DTO containing updated reservation data.
+     * @return ReservationDto
+     */
     @Override
-    public ResponseEntity<?> updateReservation(String reservationId, ReservationCreateDto reservationCreateDto) {
-        logger.info("Attempting to update reservation with ID: {} using data: {}", reservationId, reservationCreateDto);
+    public ReservationDto updateReservation(String reservationId, ReservationCreateDto reservationCreateDto) {
+        log.info("Attempting to update reservation with ID: {} using data: {}", reservationId, reservationCreateDto);
 
-        UUID uuid = parseUUID(reservationId);
+        UUID uuid = UUIDUtils.parseUUID(reservationId);
 
         Reservation existingReservation = reservationRepository.findById(uuid)
-                .orElseThrow(() -> new ResourceNotFoundException("Reservation not found."));
+                .orElseThrow(() -> {
+                    log.warn("Reservation not found for update with ID: {}", reservationId);
+                    return new ResourceNotFoundException("Reservation not found with ID: " + reservationId);
+                });
 
-        if (existingReservation.getDeleted())
-            throw new BadRequestException("Reservation is already deleted.");
-
-        String validation = validateReservationData(reservationCreateDto.getReservationTime());
-
-        if (validation != null) {
-            throw new BadRequestException(validation);
+        if (existingReservation.getDeleted()) {
+            log.warn("Attempt to update deleted Reservation ID: {}", reservationId);
+            throw new BadRequestException("Cannot update a deleted reservation.");
         }
 
-        User newUser = null;
-        if (reservationCreateDto.getUserId() != null) {
-            UUID newUserId = parseUUID(reservationCreateDto.getUserId());
-            if (existingReservation.getUser() == null || !existingReservation.getUser().getId().equals(newUserId)) {
-                newUser = userRepository.findById(newUserId)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found."));
-            }
+        String validationError = validateReservationData(reservationCreateDto.getReservationTime());
+        if (validationError != null) {
+            throw new BadRequestException(validationError);
         }
 
-        TableEntity newTable = null;
-        if (reservationCreateDto.getTableId() != null) {
-            UUID newTableId = parseUUID(reservationCreateDto.getTableId());
+        TableEntity newTable = existingReservation.getTable();
+        if (reservationCreateDto.getTableId() != null && !reservationCreateDto.getTableId().isEmpty()) {
+            UUID newTableId = UUIDUtils.parseUUID(reservationCreateDto.getTableId());
             if (!existingReservation.getTable().getId().equals(newTableId)) {
                 newTable = tableRepository.findById(newTableId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Table not found."));
+                        .orElseThrow(() -> {
+                            log.warn("Table not found with ID: {}", reservationCreateDto.getTableId());
+                            return new ResourceNotFoundException("Table not found with ID: " + reservationCreateDto.getTableId());
+                        });
             }
+        }
+
+        User newUser = existingReservation.getUser();
+        if (reservationCreateDto.getUserId() != null && !reservationCreateDto.getUserId().isEmpty()) {
+            UUID newUserId = UUIDUtils.parseUUID(reservationCreateDto.getUserId());
+            if (existingReservation.getUser() == null || !existingReservation.getUser().getId().equals(newUserId)) {
+                newUser = userRepository.findById(newUserId)
+                        .orElseThrow(() -> {
+                            log.warn("User not found with ID: {}", reservationCreateDto.getUserId());
+                            return new ResourceNotFoundException("User not found with ID: " + reservationCreateDto.getUserId());
+                        });
+            }
+        } else {
+            newUser = null;
+        }
+
+        if (reservationCreateDto.getNumberOfGuests() > newTable.getCapacity()) {
+            log.warn("Number of guests {} exceeds table capacity {}.", reservationCreateDto.getNumberOfGuests(), newTable.getCapacity());
+            throw new BadRequestException("Number of guests exceeds table capacity.");
         }
 
         Reservation tempReservation = new Reservation();
         tempReservation.setReservationTime(reservationCreateDto.getReservationTime());
-        tempReservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
-
-        tempReservation.setId(existingReservation.getId());
-        tempReservation.setUser(newUser != null ? newUser : existingReservation.getUser());
-        tempReservation.setTable(newTable != null ? newTable : existingReservation.getTable());
-
-        if (tempReservation.getNumberOfGuests() > tempReservation.getTable().getCapacity())
-            throw new BadRequestException("Number of guests exceeds table capacity.");
-
+        tempReservation.setTable(newTable);
+        tempReservation.setId(uuid);
 
         if (isOverlappingReservation(tempReservation, uuid)) {
-            throw new ConflictException("Table is already reserved at that time.");
+            log.warn("Table {} is already reserved at {}", newTable.getId(), reservationCreateDto.getReservationTime());
+            throw new ConflictException("Table is already reserved at the requested time.");
         }
 
         if (newUser != null) {
-            if (hasUserExistingReservation(tempReservation, uuid)) {
-                throw new ConflictException("User already has a reservation at this time.");
+            if (hasUserExistingReservation(reservationCreateDto.getReservationTime(), newUser.getId(), uuid)) {
+                log.warn("User {} already has a reservation at {}", newUser.getId(), reservationCreateDto.getReservationTime());
+                throw new ConflictException("User already has a reservation at the requested time.");
             }
-        } else if (reservationCreateDto.getUserId() == null && existingReservation.getUser() != null) {
-            if (hasGuestExistingReservation(tempReservation, uuid)) {
-                throw new ConflictException("Guest with this email already has a reservation at this time.");
+        } else {
+            if (hasGuestExistingReservation(reservationCreateDto.getReservationTime(), reservationCreateDto.getGuestEmail(), uuid)) {
+                log.warn("Guest with email {} already has a reservation at {}", reservationCreateDto.getGuestEmail(), reservationCreateDto.getReservationTime());
+                throw new ConflictException("Guest with this email already has a reservation at the requested time.");
             }
         }
 
         if (newUser != null) {
-            if (existingReservation.getUser() != null) {
+            if (existingReservation.getUser() != null && !existingReservation.getUser().getId().equals(newUser.getId())) {
                 existingReservation.getUser().removeReservation(existingReservation);
             }
             existingReservation.setUser(newUser);
             newUser.addReservation(existingReservation);
-        } else if (reservationCreateDto.getUserId() == null && existingReservation.getUser() != null) {
-            existingReservation.getUser().removeReservation(existingReservation);
-            existingReservation.setUser(null);
+            existingReservation.setGuestName(null);
+            existingReservation.setGuestEmail(null);
+            existingReservation.setGuestPhone(null);
+        } else {
+            if (existingReservation.getUser() != null) {
+                existingReservation.getUser().removeReservation(existingReservation);
+                existingReservation.setUser(null);
+            }
+            existingReservation.setGuestName(reservationCreateDto.getGuestName());
+            existingReservation.setGuestEmail(reservationCreateDto.getGuestEmail());
+            existingReservation.setGuestPhone(reservationCreateDto.getGuestPhone());
         }
 
-        if (newTable != null) {
+        if (!existingReservation.getTable().getId().equals(newTable.getId())) {
             existingReservation.getTable().removeReservation(existingReservation);
             existingReservation.setTable(newTable);
             newTable.addReservation(existingReservation);
@@ -291,19 +431,18 @@ public class ReservationServiceImpl implements ReservationService {
         existingReservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
 
         Reservation updatedReservation = reservationRepository.save(existingReservation);
-        logger.info("Reservation updated successfully: {}", updatedReservation.getId());
+        log.info("Reservation updated successfully with ID: {}", reservationId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(reservationMapper.toDto(updatedReservation));
+        return reservationMapper.toDto(updatedReservation);
     }
-
 
     // ------------------- Private Validation Methods -------------------
 
     /**
      * Validates the reservation data.
      *
-     * @param reservationTime the reservation entity
-     * @return error message if validation fails, otherwise null
+     * @param reservationTime The desired reservation time.
+     * @return Error message if validation fails, otherwise null.
      */
     private String validateReservationData(LocalDateTime reservationTime) {
         LocalDate reservationDate = reservationTime.toLocalDate();
@@ -326,8 +465,8 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the reservation overlaps with existing reservations.
      *
-     * @param reservation the reservation to check
-     * @return true if overlapping exists, otherwise false
+     * @param reservation The reservation to check.
+     * @return True if overlapping exists, otherwise false.
      */
     private boolean isOverlappingReservation(Reservation reservation) {
         UUID tableId = reservation.getTable().getId();
@@ -345,9 +484,9 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the reservation overlaps with existing reservations, excluding a specific reservation ID.
      *
-     * @param reservation the reservation to check
-     * @param excludeResId the reservation ID to exclude from the check
-     * @return true if overlapping exists, otherwise false
+     * @param reservation The reservation to check.
+     * @param excludeResId The reservation ID to exclude from the check.
+     * @return True if overlapping exists, otherwise false.
      */
     private boolean isOverlappingReservation(Reservation reservation, UUID excludeResId) {
         UUID tableId = reservation.getTable().getId();
@@ -366,8 +505,20 @@ public class ReservationServiceImpl implements ReservationService {
     /**
      * Checks if the user already has a reservation at the specified time.
      *
-     * @param reservation the reservation entity
-     * @return true if the user has an existing reservation at the time, otherwise false
+     * @param reservationTime The desired reservation time.
+     * @param userId          The UUID of the user.
+     * @param excludeResId    The reservation ID to exclude from the check.
+     * @return True if the user has an existing reservation at the time, otherwise false.
+     */
+    private boolean hasUserExistingReservation(LocalDateTime reservationTime, UUID userId, UUID excludeResId) {
+        return reservationRepository.existsByUser_IdAndReservationTimeAndIdNot(userId, reservationTime, excludeResId);
+    }
+
+    /**
+     * Checks if the user already has a reservation at the specified time.
+     *
+     * @param reservation The reservation entity.
+     * @return True if the user has an existing reservation at the time, otherwise false.
      */
     private boolean hasUserExistingReservation(Reservation reservation) {
         UUID userId = reservation.getUser().getId();
@@ -376,41 +527,26 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     /**
-     * Checks if the user already has a reservation at the specified time, excluding a specific reservation ID.
+     * Checks if the guest already has a reservation at the specified time.
      *
-     * @param reservation the reservation entity
-     * @param excludeResId the reservation ID to exclude from the check
-     * @return true if the user has an existing reservation at the time, otherwise false
+     * @param reservationTime The desired reservation time.
+     * @param guestEmail      The email of the guest.
+     * @param excludeResId    The reservation ID to exclude from the check.
+     * @return True if the guest has an existing reservation at the time, otherwise false.
      */
-    private boolean hasUserExistingReservation(Reservation reservation, UUID excludeResId) {
-        UUID userId = reservation.getUser().getId();
-        LocalDateTime reservationTime = reservation.getReservationTime();
-        return reservationRepository.existsByUser_IdAndReservationTimeAndIdNot(userId, reservationTime, excludeResId);
+    private boolean hasGuestExistingReservation(LocalDateTime reservationTime, String guestEmail, UUID excludeResId) {
+        return reservationRepository.existsByGuestEmailAndReservationTimeAndIdNot(guestEmail, reservationTime, excludeResId);
     }
 
     /**
      * Checks if the guest already has a reservation at the specified time.
      *
-     * @param reservation the reservation entity
-     * @return true if the guest has an existing reservation at the time, otherwise false
+     * @param reservation The reservation entity.
+     * @return True if the guest has an existing reservation at the time, otherwise false.
      */
     private boolean hasGuestExistingReservation(Reservation reservation) {
         String guestEmail = reservation.getGuestEmail();
         LocalDateTime reservationTime = reservation.getReservationTime();
         return reservationRepository.existsByGuestEmailAndReservationTime(guestEmail, reservationTime);
     }
-
-    /**
-     * Checks if the guest already has a reservation at the specified time, excluding a specific reservation ID.
-     *
-     * @param reservation the reservation entity
-     * @param excludeResId the reservation ID to exclude from the check
-     * @return true if the guest has an existing reservation at the time, otherwise false
-     */
-    private boolean hasGuestExistingReservation(Reservation reservation, UUID excludeResId) {
-        String guestEmail = reservation.getGuestEmail();
-        LocalDateTime reservationTime = reservation.getReservationTime();
-        return reservationRepository.existsByGuestEmailAndReservationTimeAndIdNot(guestEmail, reservationTime, excludeResId);
-    }
-
 }

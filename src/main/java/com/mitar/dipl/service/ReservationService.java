@@ -1,30 +1,33 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
+import com.mitar.dipl.model.dto.reservation.ReservationDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface ReservationService {
 
-    ResponseEntity<?> getAllReservations();
+    List<ReservationDto> getAllReservations();
 
-    ResponseEntity<?> getAllIncludingDeleted();
+    List<ReservationDto> getAllIncludingDeleted();
 
-    ResponseEntity<?> getReservationById(String reservationId);
+    ReservationDto getReservationById(String reservationId);
 
-    ResponseEntity<?> getReservationsByUserId(String userId);
+    List<ReservationDto> getReservationsByUserId(String userId);
 
-    ResponseEntity<?> getReservationsByTableId(String tableId);
+    List<ReservationDto> getReservationsByTableId(String tableId);
 
-    ResponseEntity<?> getReservationsByGuestName(String guestName);
+    List<ReservationDto> getReservationsByGuestName(String guestName);
 
-    ResponseEntity<?> getReservationsByGuestEmail(String guestEmail);
+    List<ReservationDto> getReservationsByGuestEmail(String guestEmail);
 
-    ResponseEntity<?> getReservationsByGuestPhone(String guestPhone);
+    List<ReservationDto> getReservationsByGuestPhone(String guestPhone);
 
-    ResponseEntity<?> createReservation(ReservationCreateDto reservationCreateDto);
+    ReservationDto createReservation(ReservationCreateDto reservationCreateDto);
 
-    ResponseEntity<?> deleteReservation(String reservationId);
+    String deleteReservation(String reservationId);
 
-    ResponseEntity<?> updateReservation(String reservationId, ReservationCreateDto reservationCreateDto);
+    ReservationDto updateReservation(String reservationId, ReservationCreateDto reservationCreateDto);
 
 }

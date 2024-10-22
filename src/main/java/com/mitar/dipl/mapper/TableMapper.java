@@ -16,19 +16,23 @@ public class TableMapper {
 
     public TableDto toDto(TableEntity tableEntity) {
         TableDto tableDto = new TableDto();
+
         tableDto.setId(tableEntity.getId().toString());
         tableDto.setTableNumber(tableEntity.getTableNumber());
         tableDto.setCapacity(tableEntity.getCapacity());
         tableDto.setIsAvailable(tableEntity.getIsAvailable());
         tableDto.setReservations(tableEntity.getReservations().stream().map(reservation -> reservationMapper.toDto(reservation)).collect(Collectors.toSet()));
+
         return tableDto;
     }
 
     public TableEntity toEntity(TableCreateDto tableCreateDto) {
         TableEntity tableEntity = new TableEntity();
+
         tableEntity.setTableNumber(tableCreateDto.getTableNumber());
         tableEntity.setCapacity(tableCreateDto.getCapacity());
         tableEntity.setIsAvailable(tableCreateDto.getIsAvailable());
+
         return tableEntity;
     }
 

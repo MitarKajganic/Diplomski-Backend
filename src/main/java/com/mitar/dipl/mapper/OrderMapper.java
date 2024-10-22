@@ -24,6 +24,7 @@ public class OrderMapper {
 
     public OrderDto toDto(OrderEntity orderEntity) {
         OrderDto orderDto = new OrderDto();
+
         orderDto.setId(orderEntity.getId().toString());
         orderDto.setCreatedAt(orderEntity.getCreatedAt());
         orderDto.setStatus(orderEntity.getStatus().name());
@@ -31,14 +32,7 @@ public class OrderMapper {
                 .map(orderItemMapper::toDto)
                 .collect(Collectors.toSet()));
         orderDto.setUserId(orderEntity.getUser().getId().toString());
-
-        // Map billId if Bill is present
-        Bill bill = orderEntity.getBill();
-        if (bill != null) {
-            orderDto.setBillId(bill.getId().toString());
-        } else {
-            orderDto.setBillId(null);
-        }
+        orderDto.setBillId(orderEntity.getBill() != null ? orderEntity.getBill().getId().toString() : null);
 
         return orderDto;
     }

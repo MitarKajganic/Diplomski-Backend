@@ -1,5 +1,7 @@
 package com.mitar.dipl.service.implementation;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.OrderMapper;
 import com.mitar.dipl.model.dto.order.OrderCreateDto;
 import com.mitar.dipl.model.dto.order.OrderDto;
@@ -9,77 +11,98 @@ import com.mitar.dipl.model.entity.OrderItem;
 import com.mitar.dipl.model.entity.User;
 import com.mitar.dipl.model.entity.enums.Status;
 import com.mitar.dipl.repository.MenuItemRepository;
-import com.mitar.dipl.repository.OrderItemRepository;
 import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.OrderService;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
-
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 @Transactional
 public class OrderServiceImpl implements OrderService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
-
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
-    private final OrderItemRepository orderItemRepository;
     private final MenuItemRepository menuItemRepository;
     private final OrderMapper orderMapper;
 
+    /**
+     * Fetches all orders.
+     *
+     * @return List of OrderDto
+     */
     @Override
-    public ResponseEntity<?> getAllOrders() {
-        logger.info("Fetching all orders.");
-        var orderDtos = orderRepository.findAll().stream()
+    public List<OrderDto> getAllOrders() {
+        log.info("Fetching all orders.");
+        List<OrderDto> orderDtos = orderRepository.findAll().stream()
                 .map(orderMapper::toDto)
                 .toList();
-        return ResponseEntity.ok(orderDtos);
+        log.info("Fetched {} orders.", orderDtos.size());
+        return orderDtos;
     }
 
+    /**
+     * Fetches an order by its ID.
+     *
+     * @param orderId The UUID of the order as a string.
+     * @return OrderDto
+     */
     @Override
-    public ResponseEntity<?> getOrderById(String orderId) {
-        UUID parsedOrderId = UUID.fromString(orderId);
+    public OrderDto getOrderById(String orderId) {
+        UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
+        log.debug("Fetching Order with ID: {}", parsedOrderId);
 
-        Optional<OrderEntity> orderOpt = orderRepository.findById(parsedOrderId);
-        if (orderOpt.isEmpty()) {
-            logger.warn("Order not found with ID: {}", orderId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
-        }
+        OrderEntity orderEntity = orderRepository.findById(parsedOrderId)
+                .orElseThrow(() -> {
+                    log.warn("Order not found with ID: {}", orderId);
+                    return new ResourceNotFoundException("Order not found with ID: " + orderId);
+                });
 
-        OrderDto orderDto = orderMapper.toDto(orderOpt.get());
-        logger.info("Retrieved Order ID: {}", orderId);
-        return ResponseEntity.ok(orderDto);
+        OrderDto orderDto = orderMapper.toDto(orderEntity);
+        log.info("Retrieved Order ID: {}", orderId);
+        return orderDto;
     }
 
+    /**
+     * Fetches an order by its Bill ID.
+     *
+     * @param billId The UUID of the bill as a string.
+     * @return OrderDto
+     */
     @Override
-    public ResponseEntity<?> getOrderByBillId(String billId) {
-        UUID parsedBillId = UUID.fromString(billId);
+    public OrderDto getOrderByBillId(String billId) {
+        UUID parsedBillId = UUIDUtils.parseUUID(billId);
+        log.debug("Fetching Order with Bill ID: {}", parsedBillId);
 
-        Optional<OrderEntity> orderOpt = orderRepository.findByBill_Id(parsedBillId);
-        if (orderOpt.isEmpty()) {
-            logger.warn("Order not found with Bill ID: {}", billId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found for the provided Bill ID.");
-        }
+        OrderEntity orderEntity = orderRepository.findByBill_Id(parsedBillId)
+                .orElseThrow(() -> {
+                    log.warn("Order not found with Bill ID: {}", billId);
+                    return new ResourceNotFoundException("Order not found for the provided Bill ID: " + billId);
+                });
 
-        OrderDto orderDto = orderMapper.toDto(orderOpt.get());
-        logger.info("Retrieved Order ID: {} by Bill ID: {}", orderOpt.get().getId(), billId);
-        return ResponseEntity.ok(orderDto);
+        OrderDto orderDto = orderMapper.toDto(orderEntity);
+        log.info("Retrieved Order ID: {} by Bill ID: {}", orderEntity.getId(), billId);
+        return orderDto;
     }
 
+    /**
+     * Creates a new order.
+     *
+     * @param orderCreateDto The DTO containing order creation data.
+     * @return OrderDto
+     */
     @Override
-    public ResponseEntity<?> createOrder(OrderCreateDto orderCreateDto) {
-        logger.info("Creating a new order.");
+    public OrderDto createOrder(OrderCreateDto orderCreateDto) {
+        log.info("Creating a new order.");
         OrderEntity orderEntity = new OrderEntity();
         orderEntity.setStatus(Status.PENDING);
 
@@ -92,111 +115,143 @@ public class OrderServiceImpl implements OrderService {
             Set<UUID> foundIds = menuItems.stream().map(MenuItem::getId).collect(Collectors.toSet());
             Set<UUID> notFoundIds = new HashSet<>(menuItemUUIDs);
             notFoundIds.removeAll(foundIds);
-            logger.warn("MenuItems not found with IDs: {}", notFoundIds);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("MenuItems not found with the provided IDs: " + notFoundIds);
+            log.warn("MenuItems not found with IDs: {}", notFoundIds);
+            throw new BadRequestException("MenuItems not found with the provided IDs: " + notFoundIds);
         }
 
         for (MenuItem menuItem : menuItems) {
+            Integer quantity = orderCreateDto.getMenuItemIdsAndQuantities().get(menuItem.getId().toString());
+            if (quantity == null || quantity <= 0) {
+                log.warn("Invalid quantity for MenuItem ID: {}", menuItem.getId());
+                throw new BadRequestException("Invalid quantity for MenuItem ID: " + menuItem.getId());
+            }
+
             OrderItem orderItem = new OrderItem();
             orderItem.setMenuItem(menuItem);
             orderItem.setOrderEntity(orderEntity);
-            orderItem.setQuantity(orderCreateDto.getMenuItemIdsAndQuantities().get(menuItem.getId().toString()));
-            orderItem.setPrice(menuItem.getPrice());
+            orderItem.setQuantity(quantity);
+            orderItem.setPrice(menuItem.getPrice().multiply(BigDecimal.valueOf(quantity)));
             orderEntity.addOrderItem(orderItem);
         }
 
-        Optional<User> userOpt = userRepository.findById(UUID.fromString(orderCreateDto.getUserId()));
-        if (userOpt.isEmpty()) {
-            logger.warn("User not found with ID: {}", orderCreateDto.getUserId());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found with the provided ID.");
-        }
-        orderEntity.setUser(userOpt.get());
+        UUID userUuid = UUIDUtils.parseUUID(orderCreateDto.getUserId());
+        User user = userRepository.findById(userUuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", orderCreateDto.getUserId());
+                    return new BadRequestException("User not found with the provided ID: " + orderCreateDto.getUserId());
+                });
+        orderEntity.setUser(user);
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
-        logger.info("Created Order ID: {}", savedOrder.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderMapper.toDto(savedOrder));
+        log.info("Created Order ID: {}", savedOrder.getId());
+
+        return orderMapper.toDto(savedOrder);
     }
 
+    /**
+     * Deletes an order by its ID.
+     *
+     * @param orderId The UUID of the order as a string.
+     * @return Success message.
+     */
     @Override
-    public ResponseEntity<?> deleteOrder(String orderId) {
+    public String deleteOrder(String orderId) {
         UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
+        log.debug("Attempting to delete Order with ID: {}", parsedOrderId);
 
-        Optional<OrderEntity> orderOpt = orderRepository.findById(parsedOrderId);
-        if (orderOpt.isEmpty()) {
-            logger.warn("Order not found for deletion with ID: {}", orderId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
+        OrderEntity orderEntity = orderRepository.findById(parsedOrderId)
+                .orElseThrow(() -> {
+                    log.warn("Order not found for deletion with ID: {}", orderId);
+                    return new ResourceNotFoundException("Order not found with ID: " + orderId);
+                });
+
+        if (orderEntity.getStatus() == Status.COMPLETED || orderEntity.getStatus() == Status.CANCELLED) {
+            log.warn("Cannot delete Order ID: {} with status: {}", orderId, orderEntity.getStatus());
+            throw new BadRequestException("Cannot delete Order with status: " + orderEntity.getStatus());
         }
 
-        orderRepository.delete(orderOpt.get());
-        logger.info("Deleted Order ID: {}", orderId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        orderRepository.delete(orderEntity);
+        log.info("Deleted Order ID: {}", orderId);
+        return "Order deleted successfully.";
     }
 
+    /**
+     * Updates an existing order.
+     *
+     * @param orderId         The UUID of the order as a string.
+     * @param orderCreateDto The DTO containing updated order data.
+     * @return OrderDto
+     */
     @Override
-    public ResponseEntity<?> updateOrder(String orderId, OrderCreateDto orderCreateDto) {
+    public OrderDto updateOrder(String orderId, OrderCreateDto orderCreateDto) {
         UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
+        log.debug("Attempting to update Order with ID: {}", parsedOrderId);
 
-        Optional<OrderEntity> optionalOrder = orderRepository.findById(parsedOrderId);
-        if (optionalOrder.isEmpty()) {
-            logger.warn("Order not found for update with ID: {}", orderId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Order not found.");
-        }
-
-        OrderEntity existingOrder = optionalOrder.get();
+        OrderEntity existingOrder = orderRepository.findById(parsedOrderId)
+                .orElseThrow(() -> {
+                    log.warn("Order not found for update with ID: {}", orderId);
+                    return new ResourceNotFoundException("Order not found with ID: " + orderId);
+                });
 
         if (!(existingOrder.getStatus() == Status.PENDING || existingOrder.getStatus() == Status.IN_PROGRESS)) {
-            logger.warn("Attempt to update Order ID {} with status {}", orderId, existingOrder.getStatus());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Only orders with status PENDING or IN_PROGRESS can be updated.");
+            log.warn("Attempt to update Order ID {} with status {}", orderId, existingOrder.getStatus());
+            throw new BadRequestException("Only orders with status PENDING or IN_PROGRESS can be updated.");
         }
 
-        UUID userUuid = UUIDUtils.parseUUID(orderCreateDto.getUserId());
-
-        Optional<User> userOpt = userRepository.findById(userUuid);
-        if (userOpt.isEmpty()) {
-            logger.warn("User not found with ID: {}", orderCreateDto.getUserId());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found with the provided ID.");
-        }
-        existingOrder.setUser(userOpt.get());
-
-        logger.info("Updating Order ID: {}", orderId);
-
-        Map<String, Integer> items = orderCreateDto.getMenuItemIdsAndQuantities();
-
-        Set<UUID> menuItemUUIDs = items.keySet().stream()
-                .map(UUIDUtils::parseUUID)
-                .collect(Collectors.toSet());
-
-        List<MenuItem> menuItems = menuItemRepository.findAllById(menuItemUUIDs);
-        if (menuItems.size() != menuItemUUIDs.size()) {
-            Set<UUID> foundIds = menuItems.stream().map(MenuItem::getId).collect(Collectors.toSet());
-            Set<UUID> notFoundIds = new HashSet<>(menuItemUUIDs);
-            notFoundIds.removeAll(foundIds);
-            logger.warn("MenuItems not found with IDs: {}", notFoundIds);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("MenuItems not found with the provided IDs: " + notFoundIds);
+        if (orderCreateDto.getUserId() != null && !orderCreateDto.getUserId().isEmpty()) {
+            UUID userUuid = UUIDUtils.parseUUID(orderCreateDto.getUserId());
+            User user = userRepository.findById(userUuid)
+                    .orElseThrow(() -> {
+                        log.warn("User not found with ID: {}", orderCreateDto.getUserId());
+                        return new BadRequestException("User not found with the provided ID: " + orderCreateDto.getUserId());
+                    });
+            existingOrder.setUser(user);
+            log.debug("Updated User for Order ID: {}", orderId);
         }
 
-        Set<OrderItem> itemsToRemove = new HashSet<>(existingOrder.getOrderItems());
-        for (OrderItem orderItem : itemsToRemove) {
-            existingOrder.removeOrderItem(orderItem);
+        if (orderCreateDto.getMenuItemIdsAndQuantities() != null && !orderCreateDto.getMenuItemIdsAndQuantities().isEmpty()) {
+            Map<String, Integer> items = orderCreateDto.getMenuItemIdsAndQuantities();
+
+            Set<UUID> menuItemUUIDs = items.keySet().stream()
+                    .map(UUIDUtils::parseUUID)
+                    .collect(Collectors.toSet());
+
+            List<MenuItem> menuItems = menuItemRepository.findAllById(menuItemUUIDs);
+            if (menuItems.size() != menuItemUUIDs.size()) {
+                Set<UUID> foundIds = menuItems.stream().map(MenuItem::getId).collect(Collectors.toSet());
+                Set<UUID> notFoundIds = new HashSet<>(menuItemUUIDs);
+                notFoundIds.removeAll(foundIds);
+                log.warn("MenuItems not found with IDs: {}", notFoundIds);
+                throw new BadRequestException("MenuItems not found with the provided IDs: " + notFoundIds);
+            }
+
+            existingOrder.getOrderItems().stream()
+                    .toList()
+                    .forEach(existingOrder::removeOrderItem);
+            log.debug("Cleared existing OrderItems for Order ID: {}", orderId);
+
+            for (MenuItem menuItem : menuItems) {
+                Integer quantity = items.get(menuItem.getId().toString());
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setMenuItem(menuItem);
+                orderItem.setOrderEntity(existingOrder);
+                orderItem.setQuantity(quantity);
+                orderItem.setPrice(menuItem.getPrice().multiply(BigDecimal.valueOf(quantity)));
+
+                existingOrder.addOrderItem(orderItem);
+            }
+            log.debug("Associated new OrderItems for Order ID: {}", orderId);
         }
 
-        for (MenuItem menuItem : menuItems) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setMenuItem(menuItem);
-            orderItem.setOrderEntity(existingOrder);
-            orderItem.setQuantity(items.get(menuItem.getId().toString()));
-            orderItem.setPrice(menuItem.getPrice());
-            existingOrder.addOrderItem(orderItem);
+        if (orderCreateDto.getStatus() != null) {
+            Status newStatus = Status.valueOf(orderCreateDto.getStatus().toUpperCase());
+            existingOrder.setStatus(newStatus);
+            log.debug("Updated status to {} for Order ID: {}", newStatus, orderId);
         }
-
-        existingOrder.setStatus(Status.valueOf(orderCreateDto.getStatus()));
 
         OrderEntity updatedOrder = orderRepository.save(existingOrder);
-        OrderDto orderDto = orderMapper.toDto(updatedOrder);
-        logger.info("Updated Order ID: {}", orderId);
-        return ResponseEntity.ok(orderDto);
+        log.info("Updated Order ID: {}", orderId);
+        return orderMapper.toDto(updatedOrder);
     }
 }

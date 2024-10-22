@@ -1,4 +1,4 @@
-package com.mitar.dipl;
+package com.mitar.dipl.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

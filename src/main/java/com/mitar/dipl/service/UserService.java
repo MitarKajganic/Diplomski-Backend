@@ -1,21 +1,25 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.user.UserCreateDto;
+import com.mitar.dipl.model.dto.user.UserDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface UserService {
 
-    ResponseEntity<?> getAllUsers();
+    List<UserDto> getAllUsers();
 
-    ResponseEntity<?> getUserById(String userId);
+    UserDto getUserById(String userId);
 
-    ResponseEntity<?> getUserByEmail(String email);
+    UserDto getUserByEmail(String email);
 
-    ResponseEntity<?> createUser(UserCreateDto userCreateDto);
+    UserDto createUser(UserCreateDto userCreateDto);
 
-    ResponseEntity<?> deleteUser(String userId);
+    String deleteUser(String userId);
 
-    ResponseEntity<?> disableUser(String userId);
+    UserDto disableUser(String userId);
 
-    ResponseEntity<?> updateUser(String userId, UserCreateDto userCreateDto);
+    UserDto updateUser(String userId, UserCreateDto userCreateDto);
+
 }

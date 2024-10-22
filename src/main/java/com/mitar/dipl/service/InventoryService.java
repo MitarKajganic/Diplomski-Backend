@@ -1,20 +1,23 @@
 package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.inventory.InventoryCreateDto;
+import com.mitar.dipl.model.dto.inventory.InventoryDto;
 import org.springframework.http.ResponseEntity;
+
+import java.util.List;
 
 public interface InventoryService {
 
-    ResponseEntity<?> getInventories();
+    List<InventoryDto> getInventories();
 
-    ResponseEntity<?> getInventoryById(String inventoryId);
+    InventoryDto getInventoryById(String inventoryId);
 
-    ResponseEntity<?> getInventoryByIngredientName(String itemName);
+    InventoryDto getInventoryByIngredientName(String itemName);
 
-    ResponseEntity<?> createInventory(InventoryCreateDto inventoryCreateDto);
+    InventoryDto createInventory(InventoryCreateDto inventoryCreateDto);
 
-    ResponseEntity<?> deleteInventory(String inventoryId);
+    String deleteInventory(String inventoryId);
 
-    ResponseEntity<?> updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto);
+    InventoryDto updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto);
 
 }

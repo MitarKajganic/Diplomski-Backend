@@ -1,106 +1,177 @@
 package com.mitar.dipl.service.implementation;
 
-
+import com.mitar.dipl.exception.custom.ConflictException;
+import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.TableMapper;
 import com.mitar.dipl.model.dto.table_entity.TableCreateDto;
+import com.mitar.dipl.model.dto.table_entity.TableDto;
+import com.mitar.dipl.model.entity.Reservation;
 import com.mitar.dipl.model.entity.TableEntity;
 import com.mitar.dipl.repository.ReservationRepository;
 import com.mitar.dipl.repository.TableRepository;
 import com.mitar.dipl.service.TableService;
-import jakarta.transaction.Transactional;
+import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
-import org.antlr.v4.runtime.misc.LogManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 @Transactional
 public class TableServiceImpl implements TableService {
 
-    private TableRepository tableRepository;
+    private final TableRepository tableRepository;
+    private final ReservationRepository reservationRepository;
+    private final TableMapper tableMapper;
 
-    private TableMapper tableMapper;
-
-    private static final Logger logger = LoggerFactory.getLogger(TableServiceImpl.class);
-    private ReservationRepository reservationRepository;
-
-
+    /**
+     * Fetches all tables.
+     *
+     * @return List of TableDto
+     */
     @Override
-    public ResponseEntity<?> getAllTables() {
-        logger.info("Fetching all tables.");
-        return ResponseEntity.status(HttpStatus.OK).body(tableRepository.findAll().stream()
+    public List<TableDto> getAllTables() {
+        log.info("Fetching all tables.");
+        List<TableDto> tableDtos = tableRepository.findAll().stream()
                 .map(tableMapper::toDto)
-                .toList()
-        );
+                .toList();
+        log.info("Fetched {} tables.", tableDtos.size());
+        return tableDtos;
     }
 
+    /**
+     * Fetches a table by its ID.
+     *
+     * @param tableId The UUID of the table as a string.
+     * @return TableDto
+     */
     @Override
-    public ResponseEntity<?> getTableById(String tableId) {
-        UUID tableUUID = UUIDUtils.parseUUID(tableId);
-        Optional<TableEntity> table = tableRepository.findById(tableUUID);
-        if (table.isEmpty()) {
-            logger.warn("Table not found with ID: {}", tableId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Table not found.");
+    public TableDto getTableById(String tableId) {
+        UUID parsedTableId = UUIDUtils.parseUUID(tableId);
+        log.debug("Fetching Table with ID: {}", parsedTableId);
+
+        TableEntity table = tableRepository.findById(parsedTableId)
+                .orElseThrow(() -> {
+                    log.warn("Table not found with ID: {}", tableId);
+                    return new ResourceNotFoundException("Table not found with ID: " + tableId);
+                });
+
+        TableDto tableDto = tableMapper.toDto(table);
+        log.info("Retrieved Table ID: {}", tableId);
+        return tableDto;
+    }
+
+    /**
+     * Fetches a table by its table number.
+     *
+     * @param tableNumber The table number.
+     * @return TableDto
+     */
+    @Override
+    public TableDto getTableByTableNumber(Integer tableNumber) {
+        log.debug("Fetching Table with table number: {}", tableNumber);
+
+        TableEntity table = tableRepository.findByTableNumber(tableNumber)
+                .orElseThrow(() -> {
+                    log.warn("Table not found with table number: {}", tableNumber);
+                    return new ResourceNotFoundException("Table not found with table number: " + tableNumber);
+                });
+
+        TableDto tableDto = tableMapper.toDto(table);
+        log.info("Retrieved Table with table number: {}", tableNumber);
+        return tableDto;
+    }
+
+    /**
+     * Creates a new table.
+     *
+     * @param tableCreateDto The DTO containing table creation data.
+     * @return TableDto
+     */
+    @Override
+    public TableDto createTable(TableCreateDto tableCreateDto) {
+        log.info("Attempting to create table with table number: {}", tableCreateDto.getTableNumber());
+
+        if (tableRepository.findByTableNumber(tableCreateDto.getTableNumber()).isPresent()) {
+            log.warn("Table with table number {} already exists.", tableCreateDto.getTableNumber());
+            throw new ConflictException("Table with table number " + tableCreateDto.getTableNumber() + " already exists.");
         }
-        return ResponseEntity.status(HttpStatus.OK).body(tableMapper.toDto(table.get()));
+
+        TableEntity tableEntity = tableMapper.toEntity(tableCreateDto);
+
+        TableEntity savedTable = tableRepository.save(tableEntity);
+        log.info("Table created successfully with ID: {}", savedTable.getId());
+
+        return tableMapper.toDto(savedTable);
     }
 
+    /**
+     * Deletes a table by its ID.
+     *
+     * @param tableId The UUID of the table as a string.
+     * @return Success message.
+     */
     @Override
-    public ResponseEntity<?> getTableByTableNumber(Integer tableNumber) {
-        Optional<TableEntity> table = tableRepository.findByTableNumber(tableNumber);
-        if (table.isEmpty()) {
-            logger.warn("Table not found with table number: {}", tableNumber);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Table not found.");
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(tableMapper.toDto(table.get()));
-    }
+    public String deleteTable(String tableId) {
+        UUID uuid = UUIDUtils.parseUUID(tableId);
+        log.debug("Attempting to delete Table with ID: {}", uuid);
 
-    @Override
-    public ResponseEntity<?> createTable(TableCreateDto tableCreateDto) {
-        Optional<TableEntity> table = tableRepository.findByTableNumber(tableCreateDto.getTableNumber());
-        if (table.isPresent()) {
-            logger.warn("Table with table number {} already exists.", tableCreateDto.getTableNumber());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Table with table number " + tableCreateDto.getTableNumber() + " already exists.");
-        }
+        TableEntity table = tableRepository.findById(uuid)
+                .orElseThrow(() -> {
+                    log.warn("Table not found with ID: {}", tableId);
+                    return new ResourceNotFoundException("Table not found with ID: " + tableId);
+                });
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(tableMapper.toDto(tableRepository.save(tableMapper.toEntity(tableCreateDto))));
-    }
-
-    @Override
-    public ResponseEntity<?> deleteTable(String tableId) {
-        Optional<TableEntity> table = tableRepository.findById(UUID.fromString(tableId));
-        if (table.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-
-        TableEntity tableEntity = table.get();
-        tableEntity.getReservations().forEach(reservation -> {
+        List<Reservation> reservations = reservationRepository.findAllByTable_Id(uuid);
+        for (Reservation reservation : reservations) {
             reservation.setTable(null);
             reservation.setDeleted(true);
             reservationRepository.save(reservation);
-        });
+            log.debug("Soft-deleted Reservation ID: {} associated with Table ID: {}", reservation.getId(), tableId);
+        }
 
-        tableRepository.delete(tableEntity);
-        return ResponseEntity.status(HttpStatus.OK).body("Table deleted successfully.");
+        tableRepository.delete(table);
+        log.info("Table deleted successfully with ID: {}", tableId);
+        return "Table deleted successfully.";
     }
 
+    /**
+     * Updates an existing table.
+     *
+     * @param tableId        The UUID of the table as a string.
+     * @param tableCreateDto The DTO containing updated table data.
+     * @return TableDto
+     */
     @Override
-    public ResponseEntity<?> updateTable(String tableId, TableCreateDto tableCreateDto) {
-        Optional<TableEntity> table = tableRepository.findById(UUID.fromString(tableId));
-        if (table.isEmpty())
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-        TableEntity tableEntity = table.get();
+    public TableDto updateTable(String tableId, TableCreateDto tableCreateDto) {
+        UUID uuid = UUIDUtils.parseUUID(tableId);
+        log.debug("Attempting to update Table with ID: {}", uuid);
 
-        tableEntity.setTableNumber(tableCreateDto.getTableNumber());
-        tableEntity.setCapacity(tableCreateDto.getCapacity());
-        tableEntity.setIsAvailable(tableCreateDto.getIsAvailable());
+        TableEntity existingTable = tableRepository.findById(uuid)
+                .orElseThrow(() -> {
+                    log.warn("Table not found with ID: {}", tableId);
+                    return new ResourceNotFoundException("Table not found with ID: " + tableId);
+                });
 
-        return ResponseEntity.status(HttpStatus.OK).body(tableRepository.save(tableEntity));
+        if (!existingTable.getTableNumber().equals(tableCreateDto.getTableNumber())) {
+            if (tableRepository.findByTableNumber(tableCreateDto.getTableNumber()).isPresent()) {
+                log.warn("Table number {} is already in use.", tableCreateDto.getTableNumber());
+                throw new ConflictException("Table number " + tableCreateDto.getTableNumber() + " is already in use.");
+            }
+        }
+
+        existingTable.setTableNumber(tableCreateDto.getTableNumber());
+        existingTable.setCapacity(tableCreateDto.getCapacity());
+        existingTable.setIsAvailable(tableCreateDto.getIsAvailable());
+
+        TableEntity updatedTable = tableRepository.save(existingTable);
+        log.info("Table updated successfully with ID: {}", tableId);
+
+        return tableMapper.toDto(updatedTable);
     }
 }
