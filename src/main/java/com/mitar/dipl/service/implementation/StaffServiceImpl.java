@@ -29,11 +29,7 @@ public class StaffServiceImpl implements StaffService {
     private final StaffRepository staffRepository;
     private final StaffMapper staffMapper;
 
-    /**
-     * Fetches all staff members.
-     *
-     * @return List of StaffDto
-     */
+
     @Override
     public List<StaffDto> getAllStaff() {
         log.info("Fetching all staff members.");
@@ -44,12 +40,6 @@ public class StaffServiceImpl implements StaffService {
         return staffDtos;
     }
 
-    /**
-     * Fetches a staff member by their ID.
-     *
-     * @param staffId The UUID of the staff member as a string.
-     * @return StaffDto
-     */
     @Override
     public StaffDto getStaffById(String staffId) {
         UUID parsedStaffId = UUIDUtils.parseUUID(staffId);
@@ -66,12 +56,6 @@ public class StaffServiceImpl implements StaffService {
         return staffDto;
     }
 
-    /**
-     * Fetches staff members by their position.
-     *
-     * @param position The position of the staff members.
-     * @return List of StaffDto
-     */
     @Override
     public List<StaffDto> getStaffByPosition(String position) {
         Position staffPosition;
@@ -91,12 +75,6 @@ public class StaffServiceImpl implements StaffService {
         return staffDtos;
     }
 
-    /**
-     * Creates a new staff member.
-     *
-     * @param staffCreateDto The DTO containing staff creation data.
-     * @return StaffDto
-     */
     @Override
     public StaffDto createStaff(StaffCreateDto staffCreateDto) {
         log.info("Attempting to create staff member with email: {}", staffCreateDto.getEmail());
@@ -114,12 +92,6 @@ public class StaffServiceImpl implements StaffService {
         return staffMapper.toDto(savedStaff);
     }
 
-    /**
-     * Deletes a staff member by their ID.
-     *
-     * @param staffId The UUID of the staff member as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteStaff(String staffId) {
         UUID uuid = UUIDUtils.parseUUID(staffId);
@@ -136,13 +108,6 @@ public class StaffServiceImpl implements StaffService {
         return "Staff deleted successfully.";
     }
 
-    /**
-     * Updates an existing staff member.
-     *
-     * @param staffId         The UUID of the staff member as a string.
-     * @param staffUpdateDto The DTO containing updated staff data.
-     * @return StaffDto
-     */
     @Override
     public StaffDto updateStaff(String staffId, StaffUpdateDto staffUpdateDto) {
         UUID uuid = UUIDUtils.parseUUID(staffId);

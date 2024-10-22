@@ -29,11 +29,7 @@ public class UserServiceImpl implements UserService {
     private final ReservationRepository reservationRepository;
     private final UserMapper userMapper;
 
-    /**
-     * Fetches all users.
-     *
-     * @return List of UserDto
-     */
+
     @Override
     public List<UserDto> getAllUsers() {
         log.info("Fetching all users.");
@@ -44,12 +40,6 @@ public class UserServiceImpl implements UserService {
         return userDtos;
     }
 
-    /**
-     * Fetches a user by their ID.
-     *
-     * @param userId The UUID of the user as a string.
-     * @return UserDto
-     */
     @Override
     public UserDto getUserById(String userId) {
         UUID parsedUserId = UUIDUtils.parseUUID(userId);
@@ -66,12 +56,6 @@ public class UserServiceImpl implements UserService {
         return userDto;
     }
 
-    /**
-     * Fetches a user by their email.
-     *
-     * @param email The email of the user.
-     * @return UserDto
-     */
     @Override
     public UserDto getUserByEmail(String email) {
         log.debug("Fetching User with email: {}", email);
@@ -87,12 +71,6 @@ public class UserServiceImpl implements UserService {
         return userDto;
     }
 
-    /**
-     * Creates a new user.
-     *
-     * @param userCreateDto The DTO containing user creation data.
-     * @return UserDto
-     */
     @Override
     public UserDto createUser(UserCreateDto userCreateDto) {
         log.info("Attempting to create user with email: {}", userCreateDto.getEmail());
@@ -110,12 +88,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(savedUser);
     }
 
-    /**
-     * Deletes a user by their ID.
-     *
-     * @param userId The UUID of the user as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteUser(String userId) {
         UUID userUuid = UUIDUtils.parseUUID(userId);
@@ -139,12 +111,6 @@ public class UserServiceImpl implements UserService {
         return "User deleted successfully.";
     }
 
-    /**
-     * Disables a user by their ID.
-     *
-     * @param userId The UUID of the user as a string.
-     * @return UserDto with updated status.
-     */
     @Override
     public UserDto disableUser(String userId) {
         UUID userUuid = UUIDUtils.parseUUID(userId);
@@ -168,13 +134,6 @@ public class UserServiceImpl implements UserService {
         return userMapper.toDto(updatedUser);
     }
 
-    /**
-     * Updates an existing user.
-     *
-     * @param userId         The UUID of the user as a string.
-     * @param userCreateDto The DTO containing updated user data.
-     * @return UserDto
-     */
     @Override
     public UserDto updateUser(String userId, UserCreateDto userCreateDto) {
         UUID userUuid = UUIDUtils.parseUUID(userId);

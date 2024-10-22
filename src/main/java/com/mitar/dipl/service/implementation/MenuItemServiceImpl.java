@@ -31,11 +31,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final OrderItemRepository orderItemRepository;
     private final MenuItemMapper menuItemMapper;
 
-    /**
-     * Fetches all menu items.
-     *
-     * @return List of MenuItemDto
-     */
+
     @Override
     public List<MenuItemDto> getMenuItems() {
         log.info("Fetching all MenuItems.");
@@ -46,12 +42,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDtos;
     }
 
-    /**
-     * Fetches a menu item by its name.
-     *
-     * @param name The name of the menu item.
-     * @return MenuItemDto
-     */
     @Override
     public MenuItemDto getMenuItemByName(String name) {
         log.debug("Fetching MenuItem with name: {}", name);
@@ -65,12 +55,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDto;
     }
 
-    /**
-     * Fetches menu items containing the specified name (case-insensitive).
-     *
-     * @param name The partial name to search for.
-     * @return List of MenuItemDto
-     */
     @Override
     public List<MenuItemDto> getMenuItemsByNameContaining(String name) {
         log.debug("Fetching MenuItems containing name: {}", name);
@@ -86,12 +70,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDtos;
     }
 
-    /**
-     * Fetches a menu item by its ID.
-     *
-     * @param id The UUID of the menu item as a string.
-     * @return MenuItemDto
-     */
     @Override
     public MenuItemDto getMenuItemById(String id) {
         UUID parsedId = UUIDUtils.parseUUID(id);
@@ -108,12 +86,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDto;
     }
 
-    /**
-     * Fetches menu items by their category.
-     *
-     * @param category The category to filter by.
-     * @return List of MenuItemDto
-     */
     @Override
     public List<MenuItemDto> getMenuItemsByCategory(String category) {
         log.debug("Fetching MenuItems by category: {}", category);
@@ -129,12 +101,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDtos;
     }
 
-    /**
-     * Creates a new menu item.
-     *
-     * @param menuItemCreateDto The DTO containing menu item creation data.
-     * @return MenuItemDto
-     */
     @Override
     public MenuItemDto createMenuItem(MenuItemCreateDto menuItemCreateDto) {
         String itemName = menuItemCreateDto.getName();
@@ -163,12 +129,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemDto;
     }
 
-    /**
-     * Deletes a menu item by its ID.
-     *
-     * @param id The UUID of the menu item as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteMenuItem(String id) {
         UUID parsedId = UUIDUtils.parseUUID(id);
@@ -197,13 +157,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return "MenuItem deleted successfully.";
     }
 
-    /**
-     * Removes a menu item from a specific menu.
-     *
-     * @param menuItemId The UUID of the menu item as a string.
-     * @param menuId     The UUID of the menu as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteMenuItemFromMenu(String menuItemId, String menuId) {
         UUID parsedMenuItemId = UUIDUtils.parseUUID(menuItemId);
@@ -232,13 +185,6 @@ public class MenuItemServiceImpl implements MenuItemService {
         return "MenuItem removed from Menu successfully.";
     }
 
-    /**
-     * Updates an existing menu item.
-     *
-     * @param id                 The UUID of the menu item as a string.
-     * @param menuItemCreateDto The DTO containing updated menu item data.
-     * @return MenuItemDto
-     */
     @Override
     public MenuItemDto updateMenuItem(String id, MenuItemCreateDto menuItemCreateDto) {
         UUID parsedId = UUIDUtils.parseUUID(id);

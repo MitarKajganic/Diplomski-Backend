@@ -29,11 +29,7 @@ public class TableServiceImpl implements TableService {
     private final ReservationRepository reservationRepository;
     private final TableMapper tableMapper;
 
-    /**
-     * Fetches all tables.
-     *
-     * @return List of TableDto
-     */
+
     @Override
     public List<TableDto> getAllTables() {
         log.info("Fetching all tables.");
@@ -44,12 +40,6 @@ public class TableServiceImpl implements TableService {
         return tableDtos;
     }
 
-    /**
-     * Fetches a table by its ID.
-     *
-     * @param tableId The UUID of the table as a string.
-     * @return TableDto
-     */
     @Override
     public TableDto getTableById(String tableId) {
         UUID parsedTableId = UUIDUtils.parseUUID(tableId);
@@ -66,12 +56,6 @@ public class TableServiceImpl implements TableService {
         return tableDto;
     }
 
-    /**
-     * Fetches a table by its table number.
-     *
-     * @param tableNumber The table number.
-     * @return TableDto
-     */
     @Override
     public TableDto getTableByTableNumber(Integer tableNumber) {
         log.debug("Fetching Table with table number: {}", tableNumber);
@@ -87,12 +71,6 @@ public class TableServiceImpl implements TableService {
         return tableDto;
     }
 
-    /**
-     * Creates a new table.
-     *
-     * @param tableCreateDto The DTO containing table creation data.
-     * @return TableDto
-     */
     @Override
     public TableDto createTable(TableCreateDto tableCreateDto) {
         log.info("Attempting to create table with table number: {}", tableCreateDto.getTableNumber());
@@ -110,12 +88,6 @@ public class TableServiceImpl implements TableService {
         return tableMapper.toDto(savedTable);
     }
 
-    /**
-     * Deletes a table by its ID.
-     *
-     * @param tableId The UUID of the table as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteTable(String tableId) {
         UUID uuid = UUIDUtils.parseUUID(tableId);
@@ -140,13 +112,6 @@ public class TableServiceImpl implements TableService {
         return "Table deleted successfully.";
     }
 
-    /**
-     * Updates an existing table.
-     *
-     * @param tableId        The UUID of the table as a string.
-     * @param tableCreateDto The DTO containing updated table data.
-     * @return TableDto
-     */
     @Override
     public TableDto updateTable(String tableId, TableCreateDto tableCreateDto) {
         UUID uuid = UUIDUtils.parseUUID(tableId);

@@ -29,11 +29,7 @@ public class MenuServiceImpl implements MenuService {
     private final MenuMapper menuMapper;
     private final MenuItemRepository menuItemRepository;
 
-    /**
-     * Fetches all menus.
-     *
-     * @return List of MenuDto
-     */
+
     @Override
     public List<MenuDto> getAllMenus() {
         log.info("Fetching all menus.");
@@ -44,12 +40,6 @@ public class MenuServiceImpl implements MenuService {
         return menuDtos;
     }
 
-    /**
-     * Fetches a menu by its ID.
-     *
-     * @param menuId The UUID of the menu as a string.
-     * @return MenuDto
-     */
     @Override
     public MenuDto getMenuById(String menuId) {
         UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
@@ -66,12 +56,6 @@ public class MenuServiceImpl implements MenuService {
         return menuDto;
     }
 
-    /**
-     * Fetches a menu by its name.
-     *
-     * @param menuName The name of the menu.
-     * @return MenuDto
-     */
     @Override
     public MenuDto getMenuByMenuName(String menuName) {
         log.debug("Fetching Menu with name: {}", menuName);
@@ -86,12 +70,6 @@ public class MenuServiceImpl implements MenuService {
         return menuDto;
     }
 
-    /**
-     * Creates a new menu.
-     *
-     * @param menuCreateDto The DTO containing menu creation data.
-     * @return MenuDto
-     */
     @Override
     public MenuDto createMenu(MenuCreateDto menuCreateDto) {
         String menuName = menuCreateDto.getName();
@@ -127,12 +105,6 @@ public class MenuServiceImpl implements MenuService {
         return menuDto;
     }
 
-    /**
-     * Deletes a menu by its ID.
-     *
-     * @param menuId The UUID of the menu as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteMenu(String menuId) {
         UUID parsedMenuId = UUIDUtils.parseUUID(menuId);
@@ -154,13 +126,6 @@ public class MenuServiceImpl implements MenuService {
         return "Menu deleted successfully.";
     }
 
-    /**
-     * Updates an existing menu.
-     *
-     * @param menuId         The UUID of the menu as a string.
-     * @param menuCreateDto The DTO containing updated menu data.
-     * @return MenuDto
-     */
     @Override
     public MenuDto updateMenu(String menuId, MenuCreateDto menuCreateDto) {
         UUID parsedMenuId = UUIDUtils.parseUUID(menuId);

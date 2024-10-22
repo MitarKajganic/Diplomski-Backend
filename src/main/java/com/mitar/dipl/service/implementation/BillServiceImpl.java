@@ -30,11 +30,7 @@ public class BillServiceImpl implements BillService {
     private final BillMapper billMapper;
     private final OrderRepository orderRepository;
 
-    /**
-     * Fetches all bills.
-     *
-     * @return List of BillDto
-     */
+
     @Override
     public List<BillDto> getAll() {
         log.info("Fetching all bills.");
@@ -43,12 +39,6 @@ public class BillServiceImpl implements BillService {
                 .toList();
     }
 
-    /**
-     * Fetches a bill by its ID.
-     *
-     * @param id The UUID of the bill as a string.
-     * @return BillDto
-     */
     @Override
     public BillDto getBillById(String id) {
         UUID billId = UUIDUtils.parseUUID(id);
@@ -60,12 +50,6 @@ public class BillServiceImpl implements BillService {
         return billMapper.toDto(bill);
     }
 
-    /**
-     * Creates a bill for an order.
-     *
-     * @param billCreateDto The BillCreateDto object.
-     * @return BillDto
-     */
     @Override
     public BillDto createBill(BillCreateDto billCreateDto) {
         String orderId = billCreateDto.getOrderId();

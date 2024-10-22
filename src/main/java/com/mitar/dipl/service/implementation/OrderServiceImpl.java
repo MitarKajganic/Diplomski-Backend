@@ -35,11 +35,6 @@ public class OrderServiceImpl implements OrderService {
     private final MenuItemRepository menuItemRepository;
     private final OrderMapper orderMapper;
 
-    /**
-     * Fetches all orders.
-     *
-     * @return List of OrderDto
-     */
     @Override
     public List<OrderDto> getAllOrders() {
         log.info("Fetching all orders.");
@@ -50,12 +45,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDtos;
     }
 
-    /**
-     * Fetches an order by its ID.
-     *
-     * @param orderId The UUID of the order as a string.
-     * @return OrderDto
-     */
     @Override
     public OrderDto getOrderById(String orderId) {
         UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
@@ -72,12 +61,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDto;
     }
 
-    /**
-     * Fetches an order by its Bill ID.
-     *
-     * @param billId The UUID of the bill as a string.
-     * @return OrderDto
-     */
     @Override
     public OrderDto getOrderByBillId(String billId) {
         UUID parsedBillId = UUIDUtils.parseUUID(billId);
@@ -94,12 +77,6 @@ public class OrderServiceImpl implements OrderService {
         return orderDto;
     }
 
-    /**
-     * Creates a new order.
-     *
-     * @param orderCreateDto The DTO containing order creation data.
-     * @return OrderDto
-     */
     @Override
     public OrderDto createOrder(OrderCreateDto orderCreateDto) {
         log.info("Creating a new order.");
@@ -148,12 +125,6 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toDto(savedOrder);
     }
 
-    /**
-     * Deletes an order by its ID.
-     *
-     * @param orderId The UUID of the order as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteOrder(String orderId) {
         UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
@@ -175,13 +146,6 @@ public class OrderServiceImpl implements OrderService {
         return "Order deleted successfully.";
     }
 
-    /**
-     * Updates an existing order.
-     *
-     * @param orderId         The UUID of the order as a string.
-     * @param orderCreateDto The DTO containing updated order data.
-     * @return OrderDto
-     */
     @Override
     public OrderDto updateOrder(String orderId, OrderCreateDto orderCreateDto) {
         UUID parsedOrderId = UUIDUtils.parseUUID(orderId);

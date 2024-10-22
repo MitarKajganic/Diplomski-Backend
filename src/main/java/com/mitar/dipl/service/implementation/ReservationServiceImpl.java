@@ -41,11 +41,7 @@ public class ReservationServiceImpl implements ReservationService {
     private static final Duration BUFFER_DURATION = Duration.ofMinutes(30);
     private static final Duration RESERVATION_DURATION = Duration.ofHours(2);
 
-    /**
-     * Fetches all reservations.
-     *
-     * @return List of ReservationDto
-     */
+
     @Override
     public List<ReservationDto> getAllReservations() {
         log.info("Fetching all reservations.");
@@ -56,11 +52,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches all reservations including soft-deleted ones.
-     *
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getAllIncludingDeleted() {
         log.info("Fetching all reservations including deleted.");
@@ -71,12 +62,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches a reservation by its ID.
-     *
-     * @param reservationId The UUID of the reservation as a string.
-     * @return ReservationDto
-     */
     @Override
     public ReservationDto getReservationById(String reservationId) {
         UUID reservationUUID = UUIDUtils.parseUUID(reservationId);
@@ -93,12 +78,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDto;
     }
 
-    /**
-     * Fetches reservations by User ID.
-     *
-     * @param userId The UUID of the user as a string.
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getReservationsByUserId(String userId) {
         UUID userUUID = UUIDUtils.parseUUID(userId);
@@ -113,12 +92,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches reservations by Table ID.
-     *
-     * @param tableId The UUID of the table as a string.
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getReservationsByTableId(String tableId) {
         UUID tableUUID = UUIDUtils.parseUUID(tableId);
@@ -133,12 +106,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches reservations by Guest Name.
-     *
-     * @param guestName The name of the guest.
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getReservationsByGuestName(String guestName) {
         log.debug("Fetching Reservations for Guest Name: {}", guestName);
@@ -152,12 +119,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches reservations by Guest Email.
-     *
-     * @param guestEmail The email of the guest.
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getReservationsByGuestEmail(String guestEmail) {
         log.debug("Fetching Reservations for Guest Email: {}", guestEmail);
@@ -171,12 +132,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Fetches reservations by Guest Phone.
-     *
-     * @param guestPhone The phone number of the guest.
-     * @return List of ReservationDto
-     */
     @Override
     public List<ReservationDto> getReservationsByGuestPhone(String guestPhone) {
         log.debug("Fetching Reservations for Guest Phone: {}", guestPhone);
@@ -190,12 +145,6 @@ public class ReservationServiceImpl implements ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Creates a new reservation.
-     *
-     * @param reservationCreateDto The DTO containing reservation creation data.
-     * @return ReservationDto
-     */
     @Override
     public ReservationDto createReservation(ReservationCreateDto reservationCreateDto) {
         log.info("Attempting to create reservation with data: {}", reservationCreateDto);
@@ -284,12 +233,7 @@ public class ReservationServiceImpl implements ReservationService {
         return reservation;
     }
 
-    /**
-     * Deletes (soft-deletes) a reservation by its ID.
-     *
-     * @param reservationId The UUID of the reservation as a string.
-     * @return Success message.
-     */
+
     @Override
     public String deleteReservation(String reservationId) {
         UUID uuid = UUIDUtils.parseUUID(reservationId);
@@ -320,13 +264,6 @@ public class ReservationServiceImpl implements ReservationService {
         return "Reservation deleted successfully.";
     }
 
-    /**
-     * Updates an existing reservation.
-     *
-     * @param reservationId        The UUID of the reservation as a string.
-     * @param reservationCreateDto The DTO containing updated reservation data.
-     * @return ReservationDto
-     */
     @Override
     public ReservationDto updateReservation(String reservationId, ReservationCreateDto reservationCreateDto) {
         log.info("Attempting to update reservation with ID: {} using data: {}", reservationId, reservationCreateDto);

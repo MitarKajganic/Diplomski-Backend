@@ -29,11 +29,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final BillRepository billRepository;
     private final TransactionMapper transactionMapper;
 
-    /**
-     * Fetches all transactions.
-     *
-     * @return List of TransactionDto
-     */
+
     @Override
     public List<TransactionDto> getAllTransactions() {
         log.info("Fetching all transactions.");
@@ -44,12 +40,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDtos;
     }
 
-    /**
-     * Fetches a transaction by its ID.
-     *
-     * @param transactionId The UUID of the transaction as a string.
-     * @return TransactionDto
-     */
     @Override
     public TransactionDto getTransactionById(String transactionId) {
         UUID parsedTransactionId = UUIDUtils.parseUUID(transactionId);
@@ -66,12 +56,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDto;
     }
 
-    /**
-     * Fetches transactions by Bill ID.
-     *
-     * @param billId The UUID of the bill as a string.
-     * @return List of TransactionDto
-     */
     @Override
     public List<TransactionDto> getTransactionsByBillId(String billId) {
         UUID parsedBillId = UUIDUtils.parseUUID(billId);
@@ -85,12 +69,6 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionDtos;
     }
 
-    /**
-     * Creates a new transaction.
-     *
-     * @param transactionCreateDto The DTO containing transaction creation data.
-     * @return TransactionDto
-     */
     @Override
     public TransactionDto createTransaction(TransactionCreateDto transactionCreateDto) {
         UUID billUUID = UUIDUtils.parseUUID(transactionCreateDto.getBillId());

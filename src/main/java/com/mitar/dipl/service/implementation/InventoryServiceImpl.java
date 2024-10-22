@@ -26,11 +26,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
 
-    /**
-     * Fetches all inventory items.
-     *
-     * @return List of InventoryDto
-     */
+
     @Override
     public List<InventoryDto> getInventories() {
         log.info("Fetching all inventories.");
@@ -41,12 +37,6 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryDtos;
     }
 
-    /**
-     * Fetches an inventory item by its ID.
-     *
-     * @param inventoryId The UUID of the inventory item as a string.
-     * @return InventoryDto
-     */
     @Override
     public InventoryDto getInventoryById(String inventoryId) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);
@@ -63,12 +53,6 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryDto;
     }
 
-    /**
-     * Fetches an inventory item by its ingredient name.
-     *
-     * @param itemName The name of the ingredient.
-     * @return InventoryDto
-     */
     @Override
     public InventoryDto getInventoryByIngredientName(String itemName) {
         log.debug("Fetching inventory with item name: {}", itemName);
@@ -84,12 +68,6 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryDto;
     }
 
-    /**
-     * Creates a new inventory item.
-     *
-     * @param inventoryCreateDto The DTO containing inventory creation data.
-     * @return InventoryDto
-     */
     @Override
     public InventoryDto createInventory(InventoryCreateDto inventoryCreateDto) {
         String itemName = inventoryCreateDto.getItemName();
@@ -108,12 +86,6 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryDto;
     }
 
-    /**
-     * Deletes an inventory item by its ID.
-     *
-     * @param inventoryId The UUID of the inventory item as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteInventory(String inventoryId) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);
@@ -130,13 +102,6 @@ public class InventoryServiceImpl implements InventoryService {
         return "Inventory deleted successfully.";
     }
 
-    /**
-     * Updates an existing inventory item.
-     *
-     * @param inventoryId          The UUID of the inventory item as a string.
-     * @param inventoryCreateDto The DTO containing updated inventory data.
-     * @return InventoryDto
-     */
     @Override
     public InventoryDto updateInventory(String inventoryId, InventoryCreateDto inventoryCreateDto) {
         UUID parsedId = UUIDUtils.parseUUID(inventoryId);

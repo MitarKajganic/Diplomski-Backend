@@ -35,11 +35,6 @@ public class OrderItemServiceImpl implements OrderItemService {
     private final MenuItemRepository menuItemRepository;
     private final OrderItemMapper orderItemMapper;
 
-    /**
-     * Fetches all OrderItems.
-     *
-     * @return List of OrderItemDto
-     */
     @Override
     public List<OrderItemDto> getAllOrderItems() {
         log.info("Fetching all OrderItems.");
@@ -50,12 +45,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         return orderItemDtos;
     }
 
-    /**
-     * Fetches an OrderItem by its ID.
-     *
-     * @param orderItemId The UUID of the OrderItem as a string.
-     * @return OrderItemDto
-     */
     @Override
     public OrderItemDto getOrderItemById(String orderItemId) {
         UUID parsedOrderItemId = UUIDUtils.parseUUID(orderItemId);
@@ -72,12 +61,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         return orderItemDto;
     }
 
-    /**
-     * Fetches OrderItems by their associated MenuItem ID.
-     *
-     * @param menuItemId The UUID of the MenuItem as a string.
-     * @return List of OrderItemDto
-     */
     @Override
     public List<OrderItemDto> getOrderItemsByMenuItemId(String menuItemId) {
         UUID parsedMenuItemId = UUIDUtils.parseUUID(menuItemId);
@@ -97,12 +80,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         return orderItemDtos;
     }
 
-    /**
-     * Creates a new OrderItem.
-     *
-     * @param orderItemCreateDto The DTO containing OrderItem creation data.
-     * @return OrderItemDto
-     */
     @Override
     public OrderItemDto createOrderItem(OrderItemCreateDto orderItemCreateDto) {
         UUID orderId = UUIDUtils.parseUUID(orderItemCreateDto.getOrderId());
@@ -147,12 +124,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         }
     }
 
-    /**
-     * Deletes an OrderItem by its ID.
-     *
-     * @param orderItemId The UUID of the OrderItem as a string.
-     * @return Success message.
-     */
     @Override
     public String deleteOrderItem(String orderItemId) {
         UUID parsedOrderItemId = UUIDUtils.parseUUID(orderItemId);
@@ -178,13 +149,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         return "OrderItem deleted successfully.";
     }
 
-    /**
-     * Updates an existing OrderItem.
-     *
-     * @param orderItemId          The UUID of the OrderItem as a string.
-     * @param orderItemCreateDto The DTO containing updated OrderItem data.
-     * @return OrderItemDto
-     */
     @Override
     public OrderItemDto updateOrderItem(String orderItemId, OrderItemCreateDto orderItemCreateDto) {
         UUID parsedOrderItemId = UUIDUtils.parseUUID(orderItemId);
