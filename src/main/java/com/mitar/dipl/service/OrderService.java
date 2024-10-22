@@ -2,7 +2,6 @@ package com.mitar.dipl.service;
 
 import com.mitar.dipl.model.dto.order.OrderCreateDto;
 import com.mitar.dipl.model.dto.order.OrderDto;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -34,6 +33,13 @@ public interface OrderService {
      */
     OrderDto getOrderByBillId(String billId);
 
+    /**
+     * Fetches all orders by user ID.
+     *
+     * @param userId The UUID of the user as a string.
+     * @return List of OrderDto
+     */
+    List<OrderDto> getOrdersByUserId(String userId);
 
     /**
      * Creates a new order.
@@ -51,6 +57,14 @@ public interface OrderService {
      * @return Success message.
      */
     String deleteOrder(String orderId);
+
+    /**
+     * Cancels an order by its ID.
+     *
+     * @param orderId The UUID of the order as a string.
+     * @return Success message.
+     */
+    String cancelOrder(String orderId);
 
 
     /**

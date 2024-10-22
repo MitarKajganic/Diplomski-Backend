@@ -11,7 +11,7 @@ public class OrderCreateDto {
     @NotNull(message = "Status cannot be null")
     @NotEmpty(message = "Status cannot be empty")
     @Pattern(regexp = "PENDING|COMPLETED|CANCELLED", message = "Status must be either PENDING, COMPLETED, or CANCELLED")
-    private String status; // e.g., PENDING, COMPLETED, CANCELLED
+    private String status;
 
     @NotNull(message = "User ID cannot be null")
     @NotEmpty(message = "User ID cannot be empty")

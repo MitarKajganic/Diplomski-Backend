@@ -11,8 +11,8 @@ public class OrderDto {
 
     private String id;
     private LocalDateTime createdAt;
-    private String status; // e.g., PENDING, COMPLETED, CANCELLE
-    private String userId; // The customer who placed the order
+    private String status;
+    private String userId;
     private Set<OrderItemDto> orderItems;
     private String billId;
 

@@ -78,6 +78,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderDto> getOrdersByUserId(String userId) {
+        UUID parsedUserId = UUIDUtils.parseUUID(userId);
+        log.debug("Fetching Orders for User with ID: {}", parsedUserId);
+
+        List<OrderDto> orderDtos = orderRepository.findAllByUser_Id(parsedUserId).stream()
+                .map(orderMapper::toDto)
+                .toList();
+        log.info("Retrieved {} Orders for User ID: {}", orderDtos.size(), userId);
+        return orderDtos;
+    }
+
+    @Override
     public OrderDto createOrder(OrderCreateDto orderCreateDto) {
         log.info("Creating a new order.");
         OrderEntity orderEntity = new OrderEntity();
@@ -144,6 +156,28 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.delete(orderEntity);
         log.info("Deleted Order ID: {}", orderId);
         return "Order deleted successfully.";
+    }
+
+    @Override
+    public String cancelOrder(String orderId) {
+        UUID parsedOrderId = UUIDUtils.parseUUID(orderId);
+        log.debug("Attempting to cancel Order with ID: {}", parsedOrderId);
+
+        OrderEntity orderEntity = orderRepository.findById(parsedOrderId)
+                .orElseThrow(() -> {
+                    log.warn("Order not found for cancellation with ID: {}", orderId);
+                    return new ResourceNotFoundException("Order not found with ID: " + orderId);
+                });
+
+        if (orderEntity.getStatus() == Status.COMPLETED || orderEntity.getStatus() == Status.CANCELLED) {
+            log.warn("Cannot cancel Order ID: {} with status: {}", orderId, orderEntity.getStatus());
+            throw new BadRequestException("Cannot cancel Order with status: " + orderEntity.getStatus());
+        }
+
+        orderEntity.setStatus(Status.CANCELLED);
+        orderRepository.save(orderEntity);
+        log.info("Cancelled Order ID: {}", orderId);
+        return "Order cancelled successfully.";
     }
 
     @Override
@@ -218,4 +252,5 @@ public class OrderServiceImpl implements OrderService {
         log.info("Updated Order ID: {}", orderId);
         return orderMapper.toDto(updatedOrder);
     }
+
 }

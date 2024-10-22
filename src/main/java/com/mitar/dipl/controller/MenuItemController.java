@@ -5,6 +5,7 @@ import com.mitar.dipl.service.MenuItemService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,21 +42,25 @@ public class MenuItemController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createMenuItem(@RequestBody @Validated MenuItemCreateDto menuItemCreateDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(menuItemService.createMenuItem(menuItemCreateDto));
     }
 
     @DeleteMapping("/delete/{menuItemId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteMenuItem(@PathVariable String menuItemId) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(menuItemService.deleteMenuItem(menuItemId));
     }
 
     @DeleteMapping("/delete/{menuItemId}/{menuId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteMenuItemFromMenu(@PathVariable String menuItemId, @PathVariable String menuId) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(menuItemService.deleteMenuItemFromMenu(menuItemId, menuId));
     }
 
     @PutMapping("/update/{menuItemId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateMenuItem(@PathVariable String menuItemId, @RequestBody @Validated MenuItemCreateDto menuItemCreateDto) {
         return ResponseEntity.status(HttpStatus.OK).body(menuItemService.updateMenuItem(menuItemId, menuItemCreateDto));
     }

@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,26 +21,31 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getAllReservations() {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getAllReservations());
     }
 
     @GetMapping("/all-including-deleted")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getAllIncludingDeleted() {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getAllIncludingDeleted());
     }
 
     @GetMapping("/{reservationId}")
+    @PreAuthorize("@securityUtils.isReservationOwnerByReservationId(#reservationId) or hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getReservationById(@PathVariable String reservationId) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(reservationId));
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("@securityUtils.isReservationsOwnerByUserId(#userId) or hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getReservationsByUserId(@PathVariable String userId) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByUserId(userId));
     }
 
     @GetMapping("/table/{tableId}")
+    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getReservationsByTableId(@PathVariable String tableId) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationsByTableId(tableId));
     }
@@ -70,11 +76,13 @@ public class ReservationController {
     }
 
     @DeleteMapping("/delete/{reservationId}")
+    @PreAuthorize("@securityUtils.isReservationOwnerByReservationId(#reservationId) or hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> deleteReservation(@PathVariable String reservationId) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(reservationService.deleteReservation(reservationId));
     }
 
     @PutMapping("/update/{reservationId}")
+    @PreAuthorize("@securityUtils.isReservationOwnerByReservationId(#reservationId) or hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> updateReservation(@PathVariable String reservationId, @RequestBody @Validated ReservationCreateDto reservationCreateDto) {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.updateReservation(reservationId, reservationCreateDto));
     }
