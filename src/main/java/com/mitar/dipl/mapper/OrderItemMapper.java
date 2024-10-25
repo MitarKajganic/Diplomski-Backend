@@ -21,6 +21,7 @@ public class OrderItemMapper {
 
         orderItemDto.setId(orderItem.getId().toString());
         orderItemDto.setPrice(orderItem.getPrice());
+        orderItemDto.setName(orderItem.getName());
         orderItemDto.setQuantity(orderItem.getQuantity());
         orderItemDto.setOrderId(orderItem.getOrderEntity().getId().toString());
         orderItemDto.setMenuItemId(orderItem.getMenuItem().getId().toString());

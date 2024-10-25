@@ -12,5 +12,6 @@ public class OrderItemDto {
     private Integer quantity;
     private String orderId;
     private String menuItemId;
+    private String name;
 
 }

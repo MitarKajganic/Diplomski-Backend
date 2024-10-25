@@ -14,6 +14,8 @@ import com.mitar.dipl.repository.TableRepository;
 import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.ReservationService;
 import com.mitar.dipl.utils.UUIDUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,9 @@ public class ReservationServiceImpl implements ReservationService {
     private final UserRepository userRepository;
     private final TableRepository tableRepository;
     private final ReservationMapper reservationMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private static final LocalTime OPENING_TIME = LocalTime.of(10, 0);
     private static final LocalTime CLOSING_TIME = LocalTime.of(22, 0);
@@ -201,6 +206,8 @@ public class ReservationServiceImpl implements ReservationService {
         table.addReservation(reservation);
 
         Reservation savedReservation = reservationRepository.save(reservation);
+        entityManager.flush();
+        entityManager.refresh(savedReservation);
         log.info("Reservation created successfully with ID: {}", savedReservation.getId());
 
         return reservationMapper.toDto(savedReservation);

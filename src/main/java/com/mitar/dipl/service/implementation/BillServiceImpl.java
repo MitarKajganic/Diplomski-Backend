@@ -11,6 +11,8 @@ import com.mitar.dipl.repository.BillRepository;
 import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.service.BillService;
 import com.mitar.dipl.utils.UUIDUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,9 @@ public class BillServiceImpl implements BillService {
     private final BillRepository billRepository;
     private final BillMapper billMapper;
     private final OrderRepository orderRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     @Override
@@ -77,6 +82,8 @@ public class BillServiceImpl implements BillService {
         order.setBill(bill);
 
         Bill savedBill = billRepository.save(bill);
+        entityManager.flush();
+        entityManager.refresh(savedBill);
         log.info("Bill created successfully with ID {} for order ID {}.", savedBill.getId(), orderUUID);
 
         return billMapper.toDto(savedBill);

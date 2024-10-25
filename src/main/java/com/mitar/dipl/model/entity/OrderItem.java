@@ -25,6 +25,9 @@ public class OrderItem {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @Column(nullable = false)
+    private String name;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     @JsonBackReference

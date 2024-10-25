@@ -11,11 +11,14 @@ import com.mitar.dipl.repository.BillRepository;
 import com.mitar.dipl.repository.TransactionRepository;
 import com.mitar.dipl.service.TransactionService;
 import com.mitar.dipl.utils.UUIDUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,6 +31,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final BillRepository billRepository;
     private final TransactionMapper transactionMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
 
     @Override
@@ -83,7 +89,7 @@ public class TransactionServiceImpl implements TransactionService {
         log.debug("Checking if Bill has sufficient funds. Available: {}, Required: {}",
                 bill.getFinalAmount(), transactionCreateDto.getAmount());
 
-        if (bill.getFinalAmount().compareTo(transactionCreateDto.getAmount()) < 0) {
+        if (bill.getFinalAmount().setScale(2, RoundingMode.HALF_UP).compareTo(transactionCreateDto.getAmount().setScale(2, RoundingMode.HALF_UP)) < 0) {
             log.warn("Insufficient funds in Bill ID: {}. Available: {}, Required: {}",
                     transactionCreateDto.getBillId(), bill.getFinalAmount(), transactionCreateDto.getAmount());
             throw new BadRequestException("Insufficient funds.");
@@ -95,6 +101,8 @@ public class TransactionServiceImpl implements TransactionService {
                 transactionCreateDto.getAmount(), transactionCreateDto.getBillId(), bill.getFinalAmount());
 
         Transaction savedTransaction = transactionRepository.save(transactionMapper.toEntity(transactionCreateDto, bill));
+        entityManager.flush();
+        entityManager.refresh(savedTransaction);
         log.info("Transaction created successfully with ID: {}", savedTransaction.getId());
 
         return transactionMapper.toDto(savedTransaction);

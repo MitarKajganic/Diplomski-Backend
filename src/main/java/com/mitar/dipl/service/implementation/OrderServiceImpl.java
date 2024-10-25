@@ -12,6 +12,8 @@ import com.mitar.dipl.repository.OrderRepository;
 import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.OrderService;
 import com.mitar.dipl.utils.UUIDUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,9 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final MenuItemRepository menuItemRepository;
     private final OrderMapper orderMapper;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<OrderDto> getAllOrders() {
@@ -117,6 +122,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setOrderEntity(orderEntity);
             orderItem.setQuantity(quantity);
             orderItem.setPrice(menuItem.getPrice().multiply(BigDecimal.valueOf(quantity)));
+            orderItem.setName(menuItem.getName());
             orderEntity.addOrderItem(orderItem);
         }
 
@@ -153,6 +159,8 @@ public class OrderServiceImpl implements OrderService {
         orderEntity.setDeliveryInfo(orderCreateDto.getDeliveryInfo());
 
         OrderEntity savedOrder = orderRepository.save(orderEntity);
+        entityManager.flush();
+        entityManager.refresh(savedOrder);
         log.info("Created Order ID: {}", savedOrder.getId());
 
         return orderMapper.toDto(savedOrder);

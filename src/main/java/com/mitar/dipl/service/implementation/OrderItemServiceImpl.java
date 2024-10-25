@@ -109,6 +109,7 @@ public class OrderItemServiceImpl implements OrderItemService {
             OrderItem existingOrderItem = existingOrderItemOpt.get();
             existingOrderItem.setQuantity(existingOrderItem.getQuantity() + orderItemCreateDto.getQuantity());
             existingOrderItem.setPrice(orderItemCreateDto.getPrice());
+            existingOrderItem.setName(menuItemEntity.getName());
             orderItemRepository.save(existingOrderItem);
             log.info("Updated OrderItem ID: {} for Order ID: {}", existingOrderItem.getId(), orderId);
             return orderItemMapper.toDto(existingOrderItem);
@@ -118,6 +119,7 @@ public class OrderItemServiceImpl implements OrderItemService {
             newOrderItem.setQuantity(orderItemCreateDto.getQuantity());
             newOrderItem.setOrderEntity(orderEntity);
             newOrderItem.setMenuItem(menuItemEntity);
+            newOrderItem.setName(menuItemEntity.getName());
             orderItemRepository.save(newOrderItem);
             log.info("Created new OrderItem ID: {} for Order ID: {}", newOrderItem.getId(), orderId);
             return orderItemMapper.toDto(newOrderItem);
@@ -190,6 +192,7 @@ public class OrderItemServiceImpl implements OrderItemService {
                 OrderItem duplicateOrderItem = duplicateOrderItemOpt.get();
                 duplicateOrderItem.setQuantity(duplicateOrderItem.getQuantity() + existingOrderItem.getQuantity());
                 duplicateOrderItem.setPrice(orderItemCreateDto.getPrice());
+                duplicateOrderItem.setName(newMenuItem.getName());
                 orderItemRepository.save(duplicateOrderItem);
 
                 currentOrderEntity.removeOrderItem(existingOrderItem);
@@ -203,6 +206,7 @@ public class OrderItemServiceImpl implements OrderItemService {
                 existingOrderItem.setMenuItem(newMenuItem);
                 existingOrderItem.setQuantity(orderItemCreateDto.getQuantity());
                 existingOrderItem.setPrice(orderItemCreateDto.getPrice());
+                existingOrderItem.setName(newMenuItem.getName());
                 orderItemRepository.save(existingOrderItem);
                 log.info("Updated MenuItem for OrderItem ID: {} to MenuItem ID: {}",
                         existingOrderItem.getId(), newMenuItemId);
@@ -211,6 +215,7 @@ public class OrderItemServiceImpl implements OrderItemService {
         } else {
             existingOrderItem.setQuantity(orderItemCreateDto.getQuantity());
             existingOrderItem.setPrice(orderItemCreateDto.getPrice());
+            existingOrderItem.setName(newMenuItem.getName());
 
             OrderItem updatedOrderItem = orderItemRepository.save(existingOrderItem);
             log.info("Updated OrderItem ID: {}", updatedOrderItem.getId());

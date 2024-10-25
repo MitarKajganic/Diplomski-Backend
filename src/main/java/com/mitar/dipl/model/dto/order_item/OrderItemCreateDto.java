@@ -18,6 +18,10 @@ public class OrderItemCreateDto {
     @Min(value = 1, message = "Quantity must be greater than zero")
     private Integer quantity;
 
+    @NotNull(message = "Name cannot be null")
+    @NotEmpty(message = "Name cannot be empty")
+    private String name;
+
     @NotNull(message = "Order ID cannot be null")
     @NotEmpty(message = "Order ID cannot be empty")
     private String orderId;

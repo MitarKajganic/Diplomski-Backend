@@ -84,7 +84,7 @@ public class DatabaseSeederService {
 
         // Order 1: PENDING, Burger x1
         OrderEntity order1 = createOrderIfNotFound(customer, Status.PENDING, deliveryInfo);
-        createOrderItemIfNotFound(order1, burger, 1, burger.getPrice());
+        createOrderItemIfNotFound(order1, burger, 1, burger.getPrice(), burger.getName());
 
         // Bill and Transaction for Order 1
         Bill bill1 = createBillIfNotFound(order1, new BigDecimal("9.99"));
@@ -92,8 +92,8 @@ public class DatabaseSeederService {
 
         // Order 2: COMPLETED, Pasta x2, Salad x1
         OrderEntity order2 = createOrderIfNotFound(customer, Status.COMPLETED, deliveryInfo2);
-        createOrderItemIfNotFound(order2, pasta, 2, pasta.getPrice());
-        createOrderItemIfNotFound(order2, salad, 1, salad.getPrice());
+        createOrderItemIfNotFound(order2, pasta, 2, pasta.getPrice(), pasta.getName());
+        createOrderItemIfNotFound(order2, salad, 1, salad.getPrice(), salad.getName());
 
         // Bill and Transaction for Order 2
         BigDecimal totalOrder2 = pasta.getPrice().multiply(BigDecimal.valueOf(2)).add(salad.getPrice());
@@ -102,7 +102,7 @@ public class DatabaseSeederService {
 
         // Order 3: CANCELLED, Steak x1
         OrderEntity order3 = createOrderIfNotFound(customer, Status.CANCELLED, deliveryInfo3);
-        createOrderItemIfNotFound(order3, steak, 1, steak.getPrice());
+        createOrderItemIfNotFound(order3, steak, 1, steak.getPrice(), steak.getName());
 
         // Bill and Transaction for Order 3
         Bill bill3 = createBillIfNotFound(order3, steak.getPrice());
@@ -110,9 +110,9 @@ public class DatabaseSeederService {
 
         // Order 4: COMPLETED, Ice Cream x2, Fries x1, Chicken Burger x1
         OrderEntity order4 = createOrderIfNotFound(customer, Status.COMPLETED, deliveryInfo4);
-        createOrderItemIfNotFound(order4, iceCream, 2, iceCream.getPrice());
-        createOrderItemIfNotFound(order4, fries, 1, fries.getPrice());
-        createOrderItemIfNotFound(order4, chickenBurger, 1, chickenBurger.getPrice());
+        createOrderItemIfNotFound(order4, iceCream, 2, iceCream.getPrice(), iceCream.getName());
+        createOrderItemIfNotFound(order4, fries, 1, fries.getPrice(), fries.getName());
+        createOrderItemIfNotFound(order4, chickenBurger, 1, chickenBurger.getPrice(), chickenBurger.getName());
 
         // Bill and Transaction for Order 4
         BigDecimal totalOrder4 = iceCream.getPrice().multiply(BigDecimal.valueOf(2))
@@ -123,8 +123,8 @@ public class DatabaseSeederService {
 
         // Order 5: PENDING, Tomato Soup x1, Grilled Fish x1
         OrderEntity order5 = createOrderIfNotFound(customer, Status.PENDING, deliveryInfo5);
-        createOrderItemIfNotFound(order5, tomatoSoup, 1, tomatoSoup.getPrice());
-        createOrderItemIfNotFound(order5, grilledFish, 1, grilledFish.getPrice());
+        createOrderItemIfNotFound(order5, tomatoSoup, 1, tomatoSoup.getPrice(), tomatoSoup.getName());
+        createOrderItemIfNotFound(order5, grilledFish, 1, grilledFish.getPrice(), grilledFish.getName());
 
         // Bill and Transaction for Order 5
         BigDecimal totalOrder5 = tomatoSoup.getPrice().add(grilledFish.getPrice());
@@ -283,13 +283,14 @@ public class DatabaseSeederService {
         return order;
     }
 
-    private OrderItem createOrderItemIfNotFound(OrderEntity order, MenuItem menuItem, int quantity, BigDecimal price) {
+    private OrderItem createOrderItemIfNotFound(OrderEntity order, MenuItem menuItem, int quantity, BigDecimal price, String name) {
         // Similarly, allow multiple order items for the same menu item in an order
         OrderItem orderItem = new OrderItem();
         orderItem.setOrderEntity(order);
         orderItem.setMenuItem(menuItem);
         orderItem.setQuantity(quantity);
         orderItem.setPrice(price.multiply(BigDecimal.valueOf(quantity)));
+        orderItem.setName(name);
 
         orderItemRepository.save(orderItem);
         log.info("Created OrderItem: {} x{} for order ID: {}", menuItem.getName(), quantity, order.getId());
