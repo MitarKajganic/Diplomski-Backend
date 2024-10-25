@@ -272,7 +272,4 @@ public class SecurityUtils {
         return getCurrentUserUUID().equals(parsedUserId);
     }
 
-
-
-
 }

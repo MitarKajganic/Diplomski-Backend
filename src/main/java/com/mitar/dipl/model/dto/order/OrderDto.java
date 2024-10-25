@@ -1,6 +1,7 @@
 package com.mitar.dipl.model.dto.order;
 
 import com.mitar.dipl.model.dto.order_item.OrderItemDto;
+import com.mitar.dipl.model.entity.DeliveryInfo;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,5 +16,6 @@ public class OrderDto {
     private String userId;
     private Set<OrderItemDto> orderItems;
     private String billId;
+    private DeliveryInfo deliveryInfo;
 
 }

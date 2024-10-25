@@ -5,10 +5,7 @@ import com.mitar.dipl.exception.custom.ResourceNotFoundException;
 import com.mitar.dipl.mapper.OrderMapper;
 import com.mitar.dipl.model.dto.order.OrderCreateDto;
 import com.mitar.dipl.model.dto.order.OrderDto;
-import com.mitar.dipl.model.entity.MenuItem;
-import com.mitar.dipl.model.entity.OrderEntity;
-import com.mitar.dipl.model.entity.OrderItem;
-import com.mitar.dipl.model.entity.User;
+import com.mitar.dipl.model.entity.*;
 import com.mitar.dipl.model.entity.enums.Status;
 import com.mitar.dipl.repository.MenuItemRepository;
 import com.mitar.dipl.repository.OrderRepository;
@@ -131,6 +128,30 @@ public class OrderServiceImpl implements OrderService {
                 });
         orderEntity.setUser(user);
 
+        DeliveryInfo deliveryInfo = orderCreateDto.getDeliveryInfo();
+
+        if (deliveryInfo.getStreet().length() < 3 || deliveryInfo.getStreet().length() > 50) {
+            log.warn("Invalid street length for Order ID: {}", orderEntity.getId());
+            throw new BadRequestException("Street length must be between 3 and 50 characters.");
+        }
+
+        if (deliveryInfo.getNumber().isEmpty() || deliveryInfo.getNumber().length() > 10) {
+            log.warn("Invalid street number length for Order ID: {}", orderEntity.getId());
+            throw new BadRequestException("Street number length must be between 1 and 10 characters.");
+        }
+
+        if (deliveryInfo.getFloor() != null && (deliveryInfo.getFloor() < 0 || deliveryInfo.getFloor() > 100)) {
+            log.warn("Invalid floor number for Order ID: {}", orderEntity.getId());
+            throw new BadRequestException("Floor number must be between 0 and 100.");
+        }
+
+        if (!deliveryInfo.getPhoneNumber().matches("^[0-9]{8,11}$")) {
+            log.warn("Invalid phone number for Order ID: {}", orderEntity.getId());
+            throw new BadRequestException("Phone number must contain between 8 and 11 numbers.");
+        }
+
+        orderEntity.setDeliveryInfo(orderCreateDto.getDeliveryInfo());
+
         OrderEntity savedOrder = orderRepository.save(orderEntity);
         log.info("Created Order ID: {}", savedOrder.getId());
 
@@ -241,6 +262,8 @@ public class OrderServiceImpl implements OrderService {
             }
             log.debug("Associated new OrderItems for Order ID: {}", orderId);
         }
+
+        existingOrder.setDeliveryInfo(orderCreateDto.getDeliveryInfo());
 
         if (orderCreateDto.getStatus() != null) {
             Status newStatus = Status.valueOf(orderCreateDto.getStatus().toUpperCase());

@@ -76,9 +76,14 @@ public class DatabaseSeederService {
         createReservation(customer, table2, 4, LocalDateTime.now().plusDays(1).withHour(18).withMinute(30));
 
         // Seed Orders and OrderItems
+        DeliveryInfo deliveryInfo = new DeliveryInfo("John", "Doe", "Main St", "123", 2, "1234567890");
+        DeliveryInfo deliveryInfo2 = new DeliveryInfo("Jane", "Smith", "Elm St", "456", 4, "0987654321");
+        DeliveryInfo deliveryInfo3 = new DeliveryInfo("Alice", "Wonderland", "Oak St", "789", 3, "1112223333");
+        DeliveryInfo deliveryInfo4 = new DeliveryInfo("Bob", "Builder", "Pine St", "101", 5, "4445556666");
+        DeliveryInfo deliveryInfo5 = new DeliveryInfo("Charlie", "Chaplin", "Maple St", "202", 2, "7778889999");
 
         // Order 1: PENDING, Burger x1
-        OrderEntity order1 = createOrderIfNotFound(customer, Status.PENDING);
+        OrderEntity order1 = createOrderIfNotFound(customer, Status.PENDING, deliveryInfo);
         createOrderItemIfNotFound(order1, burger, 1, burger.getPrice());
 
         // Bill and Transaction for Order 1
@@ -86,7 +91,7 @@ public class DatabaseSeederService {
         verifyBillAndCreateTransaction(bill1, order1, Method.CASH); // Set method here
 
         // Order 2: COMPLETED, Pasta x2, Salad x1
-        OrderEntity order2 = createOrderIfNotFound(customer, Status.COMPLETED);
+        OrderEntity order2 = createOrderIfNotFound(customer, Status.COMPLETED, deliveryInfo2);
         createOrderItemIfNotFound(order2, pasta, 2, pasta.getPrice());
         createOrderItemIfNotFound(order2, salad, 1, salad.getPrice());
 
@@ -96,7 +101,7 @@ public class DatabaseSeederService {
         verifyBillAndCreateTransaction(bill2, order2, Method.CARD); // Set method here
 
         // Order 3: CANCELLED, Steak x1
-        OrderEntity order3 = createOrderIfNotFound(customer, Status.CANCELLED);
+        OrderEntity order3 = createOrderIfNotFound(customer, Status.CANCELLED, deliveryInfo3);
         createOrderItemIfNotFound(order3, steak, 1, steak.getPrice());
 
         // Bill and Transaction for Order 3
@@ -104,7 +109,7 @@ public class DatabaseSeederService {
         verifyBillAndCreateTransaction(bill3, order3, Method.CASH); // Set method here
 
         // Order 4: COMPLETED, Ice Cream x2, Fries x1, Chicken Burger x1
-        OrderEntity order4 = createOrderIfNotFound(customer, Status.COMPLETED);
+        OrderEntity order4 = createOrderIfNotFound(customer, Status.COMPLETED, deliveryInfo4);
         createOrderItemIfNotFound(order4, iceCream, 2, iceCream.getPrice());
         createOrderItemIfNotFound(order4, fries, 1, fries.getPrice());
         createOrderItemIfNotFound(order4, chickenBurger, 1, chickenBurger.getPrice());
@@ -117,7 +122,7 @@ public class DatabaseSeederService {
         verifyBillAndCreateTransaction(bill4, order4, Method.CARD); // Set method here
 
         // Order 5: PENDING, Tomato Soup x1, Grilled Fish x1
-        OrderEntity order5 = createOrderIfNotFound(customer, Status.PENDING);
+        OrderEntity order5 = createOrderIfNotFound(customer, Status.PENDING, deliveryInfo5);
         createOrderItemIfNotFound(order5, tomatoSoup, 1, tomatoSoup.getPrice());
         createOrderItemIfNotFound(order5, grilledFish, 1, grilledFish.getPrice());
 
@@ -128,7 +133,6 @@ public class DatabaseSeederService {
 
         log.info("Database seeding completed successfully with multiple orders and order items.");
     }
-
 
     // Helper Methods
 
@@ -207,7 +211,7 @@ public class DatabaseSeederService {
     private MenuItem createMenuItemIfNotFound(String name, String description, BigDecimal price, String category, Menu menu) {
         Optional<MenuItem> menuItemOpt = menuItemRepository.findByName(name);
         if (menuItemOpt.isPresent()) {
-            log.info("MenuItem already exists: {}", name);
+            log.info("Menu item already exists: {}", name);
             return menuItemOpt.get();
         }
 
@@ -225,12 +229,7 @@ public class DatabaseSeederService {
 
     private void associateMenuItemWithMenu(Menu menu, MenuItem... menuItems) {
         for (MenuItem item : menuItems) {
-            if (!menu.getItems().contains(item)) {
-                menu.addMenuItem(item);
-                log.info("Added MenuItem: {} to Menu: {}", item.getName(), menu.getName());
-            } else {
-                log.info("MenuItem: {} is already associated with Menu: {}", item.getName(), menu.getName());
-            }
+            menu.addMenuItem(item);
         }
         menuRepository.save(menu);
         log.info("Associated {} items with menu: {}", menuItems.length, menu.getName());
@@ -265,18 +264,19 @@ public class DatabaseSeederService {
 
         try {
             reservationService.createReservation(reservationDto);
+            log.info("Created reservation for user: {} at table: {}", user.getEmail(), table.getTableNumber());
         } catch (Exception e) {
-            log.error("Failed to create reservation for user: {} at table: {} on {}. Error: {}",
-                    user.getEmail(), table.getTableNumber(), reservationTime, e.getMessage());
+            log.error("Failed to create reservation for user: {} at table: {}", user.getEmail(), table.getTableNumber(), e);
         }
     }
 
-    private OrderEntity createOrderIfNotFound(User user, Status status) {
+    private OrderEntity createOrderIfNotFound(User user, Status status, DeliveryInfo deliveryInfo) {
         // It's possible to have multiple orders with the same status for a user
         // So, always create a new order without checking
         OrderEntity order = new OrderEntity();
         order.setUser(user);
         order.setStatus(status);
+        order.setDeliveryInfo(deliveryInfo);
 
         orderRepository.save(order);
         log.info("Created order for user: {} with status: {}", user.getEmail(), status);
@@ -315,8 +315,8 @@ public class DatabaseSeederService {
         orderRepository.save(order);
 
         if (bill.getId() == null) {
-            log.error("Bill was not persisted correctly for order ID: {}", order.getId());
-            throw new IllegalStateException("Bill was not persisted correctly.");
+            log.error("Failed to create bill for order ID: {}", order.getId());
+            throw new IllegalStateException("Failed to create bill for order ID: " + order.getId());
         }
 
         log.info("Created bill for order ID: {}, Bill ID: {}", order.getId(), bill.getId());
@@ -335,7 +335,7 @@ public class DatabaseSeederService {
     private Transaction createTransactionIfNotFound(Bill bill, BigDecimal amount, Type type, Method method) {
         Optional<Transaction> transactionOpt = transactionRepository.findByBillAndType(bill, type);
         if (transactionOpt.isPresent()) {
-            log.info("Transaction already exists for bill ID: {} with type: {}", bill.getId(), type);
+            log.info("Transaction already exists for bill ID: {}", bill.getId());
             return transactionOpt.get();
         }
 
@@ -359,8 +359,8 @@ public class DatabaseSeederService {
      */
     private void verifyBillAndCreateTransaction(Bill bill, OrderEntity order, Method method) {
         if (bill.getId() == null) {
-            log.error("Bill was not persisted correctly for order ID: {}", order.getId());
-            throw new IllegalStateException("Bill was not persisted correctly.");
+            log.error("Bill has not been persisted for order ID: {}", order.getId());
+            throw new IllegalStateException("Bill has not been persisted for order ID: " + order.getId());
         }
 
         createTransactionIfNotFound(bill, bill.getFinalAmount(), Type.PAYMENT, method);

@@ -51,6 +51,9 @@ public class OrderEntity {
     @JoinColumn(name = "bill_id", referencedColumnName = "id")
     private Bill bill;
 
+    @Embedded
+    private DeliveryInfo deliveryInfo;
+
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
         orderItem.setOrderEntity(this);

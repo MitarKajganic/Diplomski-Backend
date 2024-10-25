@@ -28,6 +28,7 @@ public class OrderMapper {
         orderDto.setId(orderEntity.getId().toString());
         orderDto.setCreatedAt(orderEntity.getCreatedAt());
         orderDto.setStatus(orderEntity.getStatus().name());
+        orderDto.setDeliveryInfo(orderEntity.getDeliveryInfo());
         orderDto.setOrderItems(orderEntity.getOrderItems().stream()
                 .map(orderItemMapper::toDto)
                 .collect(Collectors.toSet()));

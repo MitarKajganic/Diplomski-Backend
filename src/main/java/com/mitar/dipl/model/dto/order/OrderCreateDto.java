@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.dto.order;
 
+import com.mitar.dipl.model.entity.DeliveryInfo;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -22,4 +23,6 @@ public class OrderCreateDto {
     @Size(min = 1, message = "Items must contain at least one item")
     private HashMap<String, @Min(value = 1, message = "Quantity must be at least 1 for every given item")Integer> menuItemIdsAndQuantities; // {"id1": 2, "id2": 1}
 
+    @NotNull(message = "Delivery info cannot be null")
+    private DeliveryInfo deliveryInfo;
 }
