@@ -16,7 +16,7 @@ public class OrderItemController {
 
     private final OrderItemService orderItemService;
 
-    @GetMapping("/all")
+    @GetMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getAllOrderItems() {
         return ResponseEntity.status(HttpStatus.OK).body(orderItemService.getAllOrderItems());

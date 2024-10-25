@@ -20,7 +20,7 @@ public class ReservationController {
 
     private final ReservationService reservationService;
 
-    @GetMapping("/all")
+    @GetMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getAllReservations() {
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getAllReservations());

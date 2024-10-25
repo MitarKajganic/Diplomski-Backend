@@ -17,7 +17,7 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    @GetMapping("/all")
+    @GetMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getAllTransactions() {
         return ResponseEntity.status(HttpStatus.OK).body(transactionService.getAllTransactions());

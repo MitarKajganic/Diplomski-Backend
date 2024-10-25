@@ -17,20 +17,17 @@ public class TableController {
 
     private final TableService tableService;
 
-    @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @GetMapping
     public ResponseEntity<?> getAllTables() {
         return ResponseEntity.status(HttpStatus.OK).body(tableService.getAllTables());
     }
 
     @GetMapping("/{tableId}")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getTableById(@PathVariable String tableId) {
         return ResponseEntity.status(HttpStatus.OK).body(tableService.getTableById(tableId));
     }
 
     @GetMapping("/table-number/{tableNumber}")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getTableByTableNumber(@PathVariable @Min(value = 1, message = "Table number must be greater than zero") Integer tableNumber) {
         return ResponseEntity.status(HttpStatus.OK).body(tableService.getTableByTableNumber(tableNumber));
     }

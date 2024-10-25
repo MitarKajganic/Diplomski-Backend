@@ -19,7 +19,7 @@ public class StaffController {
 
     private final StaffService staffService;
 
-    @GetMapping("/all")
+    @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllStaff() {
         return ResponseEntity.status(HttpStatus.OK).body(staffService.getAllStaff());

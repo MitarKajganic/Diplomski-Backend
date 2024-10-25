@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
@@ -56,6 +57,15 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/bills/{billId}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/bills").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/menus/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/menu-items/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reservations/guest-name/{guestName}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reservations/guest-email/{guestEmail}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/reservations/guest-phone/{guestPhone}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/reservations").permitAll().requestMatchers(HttpMethod.GET, "/tables/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/tables/**").permitAll()
                         .requestMatchers("/users/create").permitAll()
                         .anyRequest().authenticated()
                 )
