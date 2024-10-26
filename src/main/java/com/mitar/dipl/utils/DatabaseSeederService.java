@@ -68,8 +68,12 @@ public class DatabaseSeederService {
         associateMenuItemWithMenu(dinnerMenu, pasta, steak, grilledFish);
 
         // Seed Tables
-        TableEntity table1 = createTableIfNotFound(1, 4, true);
+        TableEntity table1 = createTableIfNotFound(1, 6, true);
         TableEntity table2 = createTableIfNotFound(2, 6, true);
+        createTableIfNotFound(3, 6, true);
+        createTableIfNotFound(4, 6, false);
+
+
 
         // Seed Reservations
         createReservation(customer, table1, 2, LocalDateTime.now().plusDays(1).withHour(12).withMinute(0));

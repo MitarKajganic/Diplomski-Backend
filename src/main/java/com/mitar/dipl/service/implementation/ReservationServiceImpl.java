@@ -42,7 +42,7 @@ public class ReservationServiceImpl implements ReservationService {
     private EntityManager entityManager;
 
     private static final LocalTime OPENING_TIME = LocalTime.of(10, 0);
-    private static final LocalTime CLOSING_TIME = LocalTime.of(22, 0);
+    private static final LocalTime CLOSING_TIME = LocalTime.of(22, 1);
     private static final Duration BUFFER_DURATION = Duration.ofMinutes(30);
     private static final Duration RESERVATION_DURATION = Duration.ofHours(2);
 
@@ -227,6 +227,9 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setNumberOfGuests(reservationCreateDto.getNumberOfGuests());
         reservation.setTable(table);
 
+        log.info("Reservation Time Dto: {}", reservationCreateDto.getReservationTime());
+        log.info("Reservation Time Entity: {}", reservation.getReservationTime());
+
         if (user != null) {
             reservation.setUser(user);
             reservation.setGuestPhone(null);
@@ -396,8 +399,13 @@ public class ReservationServiceImpl implements ReservationService {
             return "Reservation can't be made for today or past dates.";
         }
 
+        log.info("Reservation time: {}", reservationTime);
+
         LocalTime reservationStart = reservationTime.toLocalTime();
         LocalTime reservationEnd = reservationStart.plus(RESERVATION_DURATION).plusMinutes(BUFFER_DURATION.toMinutes());
+
+        log.info("Reservation start: {}", reservationStart);
+        log.info("Reservation end: {}", reservationEnd);
 
         if (reservationStart.isBefore(OPENING_TIME) || reservationEnd.isAfter(CLOSING_TIME)) {
             return "Reservation time is outside business hours.";
@@ -417,7 +425,6 @@ public class ReservationServiceImpl implements ReservationService {
         LocalDateTime requestedStart = reservation.getReservationTime();
         LocalDateTime requestedEnd = requestedStart.plus(RESERVATION_DURATION).plus(BUFFER_DURATION);
 
-        // Check for overlapping reservations within the reservation duration and buffer
         return reservationRepository.existsByTable_IdAndReservationTimeBetween(
                 tableId,
                 requestedStart.minus(RESERVATION_DURATION).minus(BUFFER_DURATION),

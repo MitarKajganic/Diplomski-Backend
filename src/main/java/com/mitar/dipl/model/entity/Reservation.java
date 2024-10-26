@@ -27,7 +27,6 @@ public class Reservation {
     @Column(name = "id", updatable = false, nullable = false, columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @CreationTimestamp
     @Column(name = "reservation_time", updatable = false, nullable = false)
     private LocalDateTime reservationTime;
 

@@ -7,12 +7,16 @@ import com.mitar.dipl.model.dto.table_entity.TableCreateDto;
 import com.mitar.dipl.model.dto.table_entity.TableDto;
 import com.mitar.dipl.model.entity.Reservation;
 import com.mitar.dipl.model.entity.TableEntity;
+import com.mitar.dipl.model.entity.User;
 import com.mitar.dipl.repository.ReservationRepository;
 import com.mitar.dipl.repository.TableRepository;
+import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.TableService;
 import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +40,7 @@ public class TableServiceImpl implements TableService {
         List<TableDto> tableDtos = tableRepository.findAll().stream()
                 .map(tableMapper::toDto)
                 .toList();
+
         log.info("Fetched {} tables.", tableDtos.size());
         return tableDtos;
     }
