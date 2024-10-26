@@ -4,6 +4,8 @@ import com.mitar.dipl.model.entity.*;
 import com.mitar.dipl.repository.*;
 import com.mitar.dipl.utils.UUIDUtils;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.security.core.Authentication;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class SecurityUtils {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityUtils.class);
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
     private final BillRepository billRepository;
@@ -224,8 +227,12 @@ public class SecurityUtils {
         UUID parsedReservationId = UUIDUtils.parseUUID(reservationId);
         Reservation reservation = reservationRepository.findById(parsedReservationId)
                 .orElse(null);
+        log.info("Reservation: " + reservation);
         if (reservation == null) {
             return false;
+        }
+        if (reservation.getUser() == null) {
+            return true;
         }
         return getCurrentUserUUID().equals(reservation.getUser().getId());
     }

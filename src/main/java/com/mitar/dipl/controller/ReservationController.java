@@ -1,15 +1,25 @@
 package com.mitar.dipl.controller;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
 import com.mitar.dipl.model.dto.reservation.ReservationCreateDto;
+import com.mitar.dipl.model.dto.reservation.ReservationDto;
+import com.mitar.dipl.model.entity.User;
+import com.mitar.dipl.model.entity.enums.Role;
+import com.mitar.dipl.repository.UserRepository;
 import com.mitar.dipl.service.ReservationService;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +28,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/reservations")
 public class ReservationController {
 
+    private static final Logger log = LoggerFactory.getLogger(ReservationController.class);
     private final ReservationService reservationService;
+    private final UserRepository userRepository;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
@@ -33,8 +45,28 @@ public class ReservationController {
     }
 
     @GetMapping("/{reservationId}")
-    @PreAuthorize("@securityUtils.isReservationOwnerByReservationId(#reservationId) or hasAnyRole('STAFF', 'ADMIN')")
+//    @PreAuthorize("@securityUtils.isReservationOwnerByReservationId(#reservationId) or hasAnyRole('STAFF', 'ADMIN')")
     public ResponseEntity<?> getReservationById(@PathVariable String reservationId) {
+        ReservationDto reservation = reservationService.getReservationById(reservationId);
+
+        log.info("ReservationTest: " + reservation);
+
+        if (reservation.getUserId() == null)
+            return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(reservationId));
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (email == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Full authentication is required to access this resource.");
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found."));
+
+        boolean isOwnerOrStaffOrAdmin = user.getId().toString().equals(reservation.getUserId()) || user.getRole().equals(Role.STAFF) || user.getRole().equals(Role.ADMIN);
+
+        if (!isOwnerOrStaffOrAdmin)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Full authentication is required to access this resource.");
+
         return ResponseEntity.status(HttpStatus.OK).body(reservationService.getReservationById(reservationId));
     }
 
