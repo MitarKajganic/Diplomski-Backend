@@ -265,6 +265,7 @@ public class OrderServiceImpl implements OrderService {
                 orderItem.setOrderEntity(existingOrder);
                 orderItem.setQuantity(quantity);
                 orderItem.setPrice(menuItem.getPrice().multiply(BigDecimal.valueOf(quantity)));
+                orderItem.setName(menuItem.getName());
 
                 existingOrder.addOrderItem(orderItem);
             }
