@@ -6,10 +6,10 @@ import com.mitar.dipl.mapper.OrderMapper;
 import com.mitar.dipl.model.dto.order.OrderCreateDto;
 import com.mitar.dipl.model.dto.order.OrderDto;
 import com.mitar.dipl.model.entity.*;
+import com.mitar.dipl.model.entity.enums.Method;
 import com.mitar.dipl.model.entity.enums.Status;
-import com.mitar.dipl.repository.MenuItemRepository;
-import com.mitar.dipl.repository.OrderRepository;
-import com.mitar.dipl.repository.UserRepository;
+import com.mitar.dipl.model.entity.enums.Type;
+import com.mitar.dipl.repository.*;
 import com.mitar.dipl.service.OrderService;
 import com.mitar.dipl.utils.UUIDUtils;
 import jakarta.persistence.EntityManager;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final MenuItemRepository menuItemRepository;
+    private final BillRepository billRepository;
+    private final TransactionRepository transactionRepository;
     private final OrderMapper orderMapper;
 
     @PersistenceContext
@@ -278,6 +281,51 @@ public class OrderServiceImpl implements OrderService {
             Status newStatus = Status.valueOf(orderCreateDto.getStatus().toUpperCase());
             existingOrder.setStatus(newStatus);
             log.debug("Updated status to {} for Order ID: {}", newStatus, orderId);
+        }
+
+        // Update the bill associated with the order, then get the transactions associated with that bill
+        // Sum all the transactions, Type.PAYMENT transactions are added, Type.REFUND transactions are subtracted
+        // If the sum is greater than the bills total, then issue a refund, otherwise issue a payment,
+        Bill bill = existingOrder.getBill();
+        // update the bills total amount
+        BigDecimal newTotal = existingOrder.getOrderItems().stream()
+                .map(OrderItem::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        bill.setTotalAmount(newTotal);
+        bill.calculateFinalAmount();
+
+        billRepository.save(bill);
+
+        List<Transaction> transactions = transactionRepository.findAllByBill_Id(bill.getId());
+        BigDecimal total = transactions.stream()
+                .map(transaction -> {
+                    if (transaction.getType() == Type.PAYMENT) {
+                        return transaction.getAmount();
+                    } else {
+                        return transaction.getAmount().negate();
+                    }
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (total.setScale(2, RoundingMode.HALF_UP).compareTo(bill.getFinalAmount().setScale(2, RoundingMode.HALF_UP)) > 0) {
+            BigDecimal refundAmount = total.subtract(bill.getFinalAmount());
+            Transaction refundTransaction = new Transaction();
+            refundTransaction.setAmount(refundAmount);
+            refundTransaction.setBill(bill);
+            refundTransaction.setType(Type.REFUND);
+            refundTransaction.setMethod(Method.CASH);
+            transactionRepository.save(refundTransaction);
+            log.debug("Issued refund of {} for Order ID: {}", refundAmount, orderId);
+        } else if (total.setScale(2, RoundingMode.HALF_UP).compareTo(bill.getFinalAmount().setScale(2, RoundingMode.HALF_UP)) < 0) {
+            BigDecimal paymentAmount = bill.getFinalAmount().subtract(total);
+            Transaction paymentTransaction = new Transaction();
+            paymentTransaction.setAmount(paymentAmount);
+            paymentTransaction.setBill(bill);
+            paymentTransaction.setType(Type.PAYMENT);
+            paymentTransaction.setMethod(Method.CASH);
+            transactionRepository.save(paymentTransaction);
+            log.debug("Issued payment of {} for Order ID: {}", paymentAmount, orderId);
         }
 
         OrderEntity updatedOrder = orderRepository.save(existingOrder);
