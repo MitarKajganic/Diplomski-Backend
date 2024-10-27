@@ -41,19 +41,25 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String userId) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(userService.deleteUser(userId));
     }
 
     @PutMapping("/disable/{userId}")
-    @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> disableUser(@PathVariable String userId) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.disableUser(userId));
     }
 
+    @PutMapping("/enable/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> enableUser(@PathVariable String userId) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.enableUser(userId));
+    }
+
     @PutMapping("/update/{userId}")
-    @PreAuthorize("@securityUtils.isUserByUserId(#userId) or hasAnyRole('STAFF', 'ADMIN')")
+    @PreAuthorize("@securityUtils.isUserByUserId(#userId) or hasAnyRole('ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable String userId, @RequestBody @Validated UserCreateDto userCreateDto) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.updateUser(userId, userCreateDto));
     }

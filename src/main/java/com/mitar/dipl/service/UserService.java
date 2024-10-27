@@ -56,6 +56,14 @@ public interface UserService {
     UserDto disableUser(String userId);
 
     /**
+     * Enables a user by their ID.
+     *
+     * @param userId The UUID of the user as a string.
+     * @return UserDto with updated status.
+     */
+    UserDto enableUser(String userId);
+
+    /**
      * Updates an existing user.
      *
      * @param userId         The UUID of the user as a string.

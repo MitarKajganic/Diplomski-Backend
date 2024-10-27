@@ -135,6 +135,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto enableUser(String userId) {
+        UUID userUuid = UUIDUtils.parseUUID(userId);
+        log.debug("Attempting to enable User with ID: {}", userUuid);
+
+        User user = userRepository.findById(userUuid)
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", userId);
+                    return new ResourceNotFoundException("User not found with ID: " + userId);
+                });
+
+        if (user.getActive()) {
+            log.warn("User with ID: {} is already enabled.", userId);
+            throw new BadRequestException("User is already enabled.");
+        }
+
+        user.setActive(true);
+        User updatedUser = userRepository.save(user);
+        log.info("User enabled successfully with ID: {}", userId);
+
+        return userMapper.toDto(updatedUser);
+    }
+
+    @Override
     public UserDto updateUser(String userId, UserCreateDto userCreateDto) {
         UUID userUuid = UUIDUtils.parseUUID(userId);
         log.debug("Attempting to update User with ID: {}", userUuid);

@@ -1,5 +1,6 @@
 package com.mitar.dipl.controller;
 
+import com.mitar.dipl.exception.custom.BadRequestException;
 import com.mitar.dipl.model.dto.login.LoginRequest;
 import com.mitar.dipl.model.dto.login.LoginResponse;
 import com.mitar.dipl.model.entity.User;
@@ -28,6 +29,13 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (!user.getActive()) {
+            throw new BadRequestException("User account is inactive. Please contact support.");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -36,9 +44,6 @@ public class AuthController {
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found after authentication"));
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
