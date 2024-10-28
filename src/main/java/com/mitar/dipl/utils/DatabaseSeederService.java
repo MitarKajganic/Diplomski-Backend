@@ -30,7 +30,6 @@ public class DatabaseSeederService {
     private final OrderItemRepository orderItemRepository;
     private final BillRepository billRepository;
     private final TransactionRepository transactionRepository;
-    private final InventoryRepository inventoryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -44,10 +43,6 @@ public class DatabaseSeederService {
         // Seed Staff
         Staff staff1 = createStaffIfNotFound("manager@staff.com", "password", "John", "Doe", Position.MANAGER, "123-456-7890");
         Staff staff2 = createStaffIfNotFound("waiter@staff.com", "password", "Jane", "Smith", Position.WAITER, "098-765-4321");
-
-        // Seed Inventory Items
-        Inventory beefInventory = createInventoryIfNotFound("Beef", 10, "kg", false);
-        Inventory chickenInventory = createInventoryIfNotFound("Chicken", 15, "kg", false);
 
         // Seed Menus and MenuItems
         Menu lunchMenu = createMenuIfNotFound("Lunch");
@@ -177,24 +172,6 @@ public class DatabaseSeederService {
         staffRepository.save(staff);
         log.info("Created staff: {} {}", name, surname);
         return staff;
-    }
-
-    private Inventory createInventoryIfNotFound(String itemName, int quantity, String unit, boolean lowStock) {
-        Optional<Inventory> inventoryOpt = inventoryRepository.findByItemName(itemName);
-        if (inventoryOpt.isPresent()) {
-            log.info("Inventory item already exists: {}", itemName);
-            return inventoryOpt.get();
-        }
-
-        Inventory inventory = new Inventory();
-        inventory.setItemName(itemName);
-        inventory.setQuantity(quantity);
-        inventory.setUnit(unit);
-        inventory.setLowStock(lowStock);
-
-        inventoryRepository.save(inventory);
-        log.info("Created inventory item: {}", itemName);
-        return inventory;
     }
 
     private Menu createMenuIfNotFound(String menuName) {
