@@ -268,6 +268,15 @@ public class SecurityUtils {
         return getCurrentUserUUID().equals(order.getUser().getId());
     }
 
+    public boolean isTransactionOwnerByStripeSessionId(String stripeSessionId) {
+        Transaction transaction = transactionRepository.findByStripeSessionId(stripeSessionId)
+                .orElse(null);
+        if (transaction == null) {
+            return false;
+        }
+        return getCurrentUserUUID().equals(transaction.getBill().getOrderEntity().getUser().getId());
+    }
+
     /**
      * Checks if the authenticated user is accessing their own data.
      *

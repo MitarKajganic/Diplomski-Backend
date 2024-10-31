@@ -35,6 +35,12 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.OK).body(transactionService.getTransactionsByBillId(billId));
     }
 
+    @GetMapping("/stripe/{stripeSessionId}")
+    @PreAuthorize("@securityUtils.isTransactionOwnerByStripeSessionId(#stripeSessionId) or hasAnyRole('STAFF', 'ADMIN')")
+    public ResponseEntity<?> getByStripeSessionId(@PathVariable String stripeSessionId) {
+        return ResponseEntity.status(HttpStatus.OK).body(transactionService.getByStripeSessionId(stripeSessionId));
+    }
+
     @PostMapping
     @PreAuthorize("@securityUtils.isBillOwnerByBillId(#transactionCreateDto.getBillId())")
     public ResponseEntity<?> createTransaction(@RequestBody @Validated TransactionCreateDto transactionCreateDto) {

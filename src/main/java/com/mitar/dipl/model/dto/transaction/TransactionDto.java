@@ -1,5 +1,6 @@
 package com.mitar.dipl.model.dto.transaction;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -14,5 +15,8 @@ public class TransactionDto {
     private String type;
     private String method;
     private String billId;
+    private String stripeUrl;
+    private String stripeSessionId;
+    private String stripeStatus;
 
 }

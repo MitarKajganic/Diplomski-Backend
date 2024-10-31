@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/reservations/{reservationId}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/reservations").permitAll()
                         .requestMatchers(HttpMethod.GET, "/tables/**").permitAll()
+                        .requestMatchers("/webhook/**").permitAll()
                         .requestMatchers("/users/create").permitAll()
                         .anyRequest().authenticated()
                 )

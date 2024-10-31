@@ -26,6 +26,9 @@ public class TransactionMapper {
         transactionDto.setType(transaction.getType().name());
         transactionDto.setMethod(transaction.getMethod().name());
         transactionDto.setBillId(transaction.getBill().getId().toString());
+        transactionDto.setStripeUrl(transaction.getStripeUrl() != null ? transaction.getStripeUrl() : null);
+        transactionDto.setStripeSessionId(transaction.getStripeSessionId() != null ? transaction.getStripeSessionId() : null);
+        transactionDto.setStripeStatus(transaction.getStripeStatus() != null ? transaction.getStripeStatus() : null);
 
         return transactionDto;
     }

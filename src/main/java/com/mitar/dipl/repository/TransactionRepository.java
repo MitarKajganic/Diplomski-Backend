@@ -16,4 +16,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     List<Transaction> findAllByBill_Id(UUID uuid);
 
     Optional<Transaction> findByBillAndType(Bill bill, Type type);
+
+    Optional<Transaction> findByStripeSessionId(String stripeSessionId);
 }

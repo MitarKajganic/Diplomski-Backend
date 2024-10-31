@@ -50,4 +50,11 @@ public class Transaction {
     @JsonBackReference
     private Bill bill;
 
+    private String stripeStatus;
+
+    @Column(name = "stripe_url", length = 2048)
+    private String stripeUrl;
+
+    private String stripeSessionId;
+
 }
